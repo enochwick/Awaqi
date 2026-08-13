@@ -1,0 +1,17 @@
+/*
+Theme Name: Awaqi
+Theme URI: https://awaqi.ai
+Author: Awaqi
+Description: Immersive single-screen theme built around an interactive Spline 3D scene, with a scrollable content layer for standard pages and posts.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.7
+Requires PHP: 8.0
+License: GPL-2.0-or-later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: awaqi
+Tags: one-column, custom-menu, custom-logo, translation-ready
+
+The compiled styles live in assets/css/main.css. This file exists for the
+theme header WordPress requires, plus the small handful of editor-facing bits.
+*/

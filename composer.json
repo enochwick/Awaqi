@@ -1,0 +1,22 @@
+{
+  "name": "awaqi/awaqi-theme",
+  "description": "Awaqi WordPress theme with an interactive 3D scene, deployed with Deployer.",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "php": ">=8.0"
+  },
+  "require-dev": {
+    "deployer/deployer": "^7.3"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  },
+  "scripts": {
+    "deploy": "dep deploy production",
+    "deploy:staging": "dep deploy staging",
+    "rollback": "dep rollback production",
+    "lint": "find wp-content/themes -name '*.php' -print0 | xargs -0 -n1 php -l"
+  }
+}

@@ -1,0 +1,51 @@
+# -----------------------------------------------------------------------------
+# Raw 3D source — NEVER commit these.
+# The interior OBJ alone is 1.2 GB. GitHub rejects any file over 100 MB, and
+# even under LFS a file that size makes the repo unusable. Keep the raw sources
+# in cloud storage; commit only the optimized GLB the site actually loads.
+# -----------------------------------------------------------------------------
+/assets/
+*.obj
+*.mtl
+*.c4d
+*.fbx
+*.blend
+*.blend1
+*.max
+*.rar
+*.zip
+
+# WordPress — this repo holds the theme only.
+/wp-config.php
+/wp-content/uploads/
+/wp-content/upgrade/
+/wp-content/cache/
+/wp-content/plugins/
+/wp-admin/
+/wp-includes/
+/wp-*.php
+/index.php
+/xmlrpc.php
+/license.txt
+/readme.html
+
+# Deployer
+/vendor/
+/.dep/
+deploy.local.php
+
+# Node (only if a build step is added later)
+/node_modules/
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
