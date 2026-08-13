@@ -1,0 +1,39 @@
+---
+# cPanel Git Version Control deployment.
+#
+# Without this file, cPanel clones the repo into ~/repositories/Awaqi and stops
+# there — the pull "succeeds" but nothing reaches the live site. These tasks
+# copy the theme out of the checkout and into wp-content/themes/awaqi.
+#
+# CHECK WP_ROOT BELOW before deploying. It must point at the folder containing
+# wp-config.php. That is public_html for a primary domain, but an addon domain
+# or subdomain will differ (e.g. $HOME/awaqi.ai, or $HOME/public_html/sub).
+# Confirm it under cPanel → Domains → Document Root.
+#
+# After editing: commit, push, then hit Deploy HEAD Commit in
+# cPanel → Git Version Control.
+
+deployment:
+  tasks:
+    - export WP_ROOT="$HOME/public_html"
+    - export THEMES="$WP_ROOT/wp-content/themes"
+    - export THEME="$THEMES/awaqi"
+
+    # Refuse to deploy into a path WordPress does not actually read.
+    - test -f "$WP_ROOT/wp-config.php" || { echo "ERROR: no wp-config.php in $WP_ROOT — fix WP_ROOT in .cpanel.yml"; exit 1; }
+    - mkdir -p "$THEMES"
+
+    # If something else already occupies the folder, back it up once rather
+    # than overwriting it. Skipped when the folder is already our theme.
+    # Note: tests for a *readable style.css that is not ours*, so a missing
+    # grep or unreadable file can never silently trigger a rename loop.
+    - if [ -f "$THEME/style.css" ] && ! grep -q "Theme Name: Awaqi" "$THEME/style.css"; then mv "$THEME" "$THEME-backup-$(date +%Y%m%d%H%M%S)"; echo "Backed up the previous theme folder"; fi
+
+    - mkdir -p "$THEME"
+
+    # rsync mirrors (removing files deleted from the repo) where available;
+    # cp is the fallback for hosts that do not ship rsync.
+    - if command -v rsync >/dev/null 2>&1; then rsync -a --delete wp-content/themes/awaqi/ "$THEME/"; else cp -R wp-content/themes/awaqi/. "$THEME/"; fi
+
+    - echo "Deployed to $THEME"
+    - ls -la "$THEME"

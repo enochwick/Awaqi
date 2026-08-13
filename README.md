@@ -60,7 +60,48 @@ Nav items come from **Appearance → Menus**, assigned to the *Primary* location
 The CTA button is appended automatically. With no menu assigned, only the CTA
 shows, so a fresh install still looks intentional.
 
-## Deploying
+## Deploying — cPanel Git Version Control (current setup)
+
+This is the active path. [`.cpanel.yml`](.cpanel.yml) drives it.
+
+**Why a pull can "succeed" and change nothing:** cPanel clones the repo into
+`~/repositories/Awaqi` and stops there. Without `.cpanel.yml` it never copies
+anything into `public_html`, so the deploy reports success while the live site
+is untouched.
+
+### Setup
+
+1. **Set `WP_ROOT` in [`.cpanel.yml`](.cpanel.yml).** It must be the folder
+   holding `wp-config.php`. `$HOME/public_html` is right for a primary domain;
+   addon domains and subdomains differ. Check cPanel → Domains → Document Root.
+2. Commit and push.
+3. cPanel → Git Version Control → **Manage** → **Deploy HEAD Commit**.
+4. **Activate the theme** in Appearance → Themes. Copying files does not switch
+   the active theme — this is the step most often missed.
+
+### What the tasks do
+
+- Abort if `wp-config.php` is not at `WP_ROOT`, rather than deploying into a
+  path WordPress never reads
+- Back up an existing non-Awaqi theme folder once, instead of overwriting it
+- Mirror the theme with `rsync --delete`, falling back to `cp -R` on hosts
+  without rsync
+- List the deployed files so the log shows what actually landed
+
+Re-deploying over an existing Awaqi install does **not** create repeat backups.
+
+### If the site still looks unchanged
+
+1. Confirm the files arrived: `ls -la ~/public_html/wp-content/themes/awaqi`
+2. Confirm Awaqi is the **active** theme in Appearance → Themes
+3. Purge caches — LiteSpeed Cache and WP Rocket are common on cPanel hosts, and
+   Cloudflare caches separately from your server
+4. Hard-reload the browser (⌘⇧R)
+
+## Deploying — Deployer over SSH (alternative)
+
+Kept for a future move to a VPS. Not used by the cPanel flow above, and its
+`hostname` / `wp_path` / `deploy_path` values are still placeholders.
 
 ### One-time server setup
 

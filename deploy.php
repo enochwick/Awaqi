@@ -24,8 +24,7 @@ require 'recipe/common.php';
 set( 'application', 'awaqi' );
 set( 'theme_slug', 'awaqi' );
 
-// Change this to your repository once it has a remote.
-set( 'repository', 'git@github.com:USERNAME/awaqi.git' );
+set( 'repository', 'git@github.com:enochwick/Awaqi.git' );
 
 set( 'keep_releases', 5 );
 set( 'git_tty', false );
