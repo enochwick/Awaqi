@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Awaqi AI</title>
+<meta name="description" content="Awaqi AI — intelligence that moves with you.">
+<style>
+  :root{
+    --bg: #05060a;
+    --ink: #f4f5f7;
+    --muted: rgba(244,245,247,.62);
+    --line: rgba(244,245,247,.14);
+    --accent: #7c5cff;
+    --pad: clamp(20px, 4vw, 48px);
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ height: 100%; }
+  body{
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "SF Pro Text", "Segoe UI", Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+
+  /* ---- 3D scene ---- */
+  .scene{
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+  }
+  .scene iframe{
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    opacity: 0;
+    transition: opacity .9s ease;
+  }
+  .scene.is-ready iframe{ opacity: 1; }
+
+  /* soft vignette so overlay text stays readable over the scene */
+  .veil{
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(5,6,10,.72) 0%, rgba(5,6,10,0) 32%),
+      linear-gradient(0deg, rgba(5,6,10,.82) 0%, rgba(5,6,10,0) 40%);
+  }
+
+  /* ---- loader ---- */
+  .loader{
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 18px;
+    background: var(--bg);
+    transition: opacity .6s ease, visibility .6s ease;
+  }
+  .loader.is-hidden{ opacity: 0; visibility: hidden; }
+  .loader .mark{
+    font-size: 13px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .bar{
+    width: 128px;
+    height: 2px;
+    border-radius: 2px;
+    background: rgba(244,245,247,.12);
+    overflow: hidden;
+  }
+  .bar::after{
+    content: "";
+    display: block;
+    width: 40%;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--accent);
+    animation: slide 1.25s cubic-bezier(.4,0,.2,1) infinite;
+  }
+  @keyframes slide{
+    0%{ transform: translateX(-100%); }
+    100%{ transform: translateX(320%); }
+  }
+
+  /* ---- overlay chrome ---- */
+  .ui{
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: max(var(--pad), env(safe-area-inset-top)) var(--pad)
+             max(var(--pad), env(safe-area-inset-bottom));
+    pointer-events: none;
+  }
+  .ui a, .ui button{ pointer-events: auto; }
+
+  header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .logo{
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 17px;
+    letter-spacing: -.01em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .logo .dot{
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 16px 2px rgba(124,92,255,.7);
+  }
+  nav{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  nav a{
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    transition: color .18s ease, background-color .18s ease;
+  }
+  nav a:hover{ color: var(--ink); background: rgba(244,245,247,.08); }
+  nav a:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .cta{
+    color: var(--ink) !important;
+    background: rgba(244,245,247,.1);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .cta:hover{ background: rgba(244,245,247,.2); }
+  .cta:active{ transform: translateY(1px); }
+
+  footer{
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .hero{ max-width: 30ch; }
+  h1{
+    margin: 0 0 12px;
+    font-size: clamp(34px, 7vw, 68px);
+    line-height: 1.02;
+    letter-spacing: -.035em;
+    font-weight: 600;
+  }
+  .hero p{
+    margin: 0;
+    font-size: clamp(15px, 1.6vw, 17px);
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 42ch;
+  }
+  .hint{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: rgba(244,245,247,.42);
+    white-space: nowrap;
+  }
+  .hint svg{ opacity: .7; }
+
+  @media (max-width: 760px){
+    body{ overflow: hidden; }
+    nav a:not(.cta){ display: none; }
+    footer{ flex-direction: column; align-items: flex-start; gap: 18px; }
+    .hint{ font-size: 11px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="scene" id="scene">
+    <iframe
+      id="spline"
+      src="https://my.spline.design/awaqiaiformobile-petbTiUGXaQcJ56veNakhd4C/"
+      title="Awaqi AI interactive 3D scene"
+      loading="eager"
+      allow="autoplay; fullscreen; xr-spatial-tracking"
+      frameborder="0"></iframe>
+  </div>
+
+  <div class="veil"></div>
+
+  <div class="ui">
+    <header>
+      <a class="logo" href="/"><span class="dot"></span>Awaqi<span style="color:var(--muted);font-weight:400">&nbsp;AI</span></a>
+      <nav>
+        <a href="#product">Product</a>
+        <a href="#about">About</a>
+        <a class="cta" href="#waitlist">Join waitlist</a>
+      </nav>
+    </header>
+
+    <footer>
+      <div class="hero">
+        <h1>Intelligence that moves with you.</h1>
+        <p>Awaqi AI brings context, memory, and real-time reasoning to the device already in your pocket.</p>
+      </div>
+      <div class="hint">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>
+        </svg>
+        Drag to explore
+      </div>
+    </footer>
+  </div>
+
+  <div class="loader" id="loader">
+    <div class="mark">Awaqi AI</div>
+    <div class="bar"></div>
+  </div>
+
+  <script>
+    (function () {
+      var frame  = document.getElementById('spline');
+      var scene  = document.getElementById('scene');
+      var loader = document.getElementById('loader');
+      var done   = false;
+
+      function reveal() {
+        if (done) return;
+        done = true;
+        scene.classList.add('is-ready');
+        // small beat so the scene's first frame is painted before the curtain lifts
+        setTimeout(function () { loader.classList.add('is-hidden'); }, 400);
+      }
+
+      frame.addEventListener('load', reveal);
+      // fallback: never leave the visitor staring at a loader
+      setTimeout(reveal, 8000);
+    })();
+  </script>
+
+</body>
+</html>
