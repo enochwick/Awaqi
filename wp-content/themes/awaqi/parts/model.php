@@ -16,23 +16,24 @@ if ( ! $model_url ) {
 	return;
 }
 
-$heading = awaqi_option( 'awaqi_model_heading' );
-$text    = awaqi_option( 'awaqi_model_text' );
+$heading = awaqi_field( 'awaqi_model_heading' );
+$text    = awaqi_field( 'awaqi_model_text' );
+
 // Falls back to the render bundled with the theme.
-$poster = awaqi_option( 'awaqi_model_poster' );
+$poster = awaqi_field( 'awaqi_model_poster' );
 if ( ! $poster ) {
-	$poster = get_template_directory_uri() . '/assets/img/interior-poster.jpg';
+	$poster = get_template_directory_uri() . '/assets/images/interior-poster.jpg';
 }
 ?>
 
 <section class="model" id="model">
 	<div class="model__intro">
 		<?php if ( $heading ) : ?>
-			<h2 class="model__title"><?php echo esc_html( $heading ); ?></h2>
+			<h2 class="model__title t-section"><?php echo esc_html( $heading ); ?></h2>
 		<?php endif; ?>
 
 		<?php if ( $text ) : ?>
-			<p class="model__text"><?php echo esc_html( $text ); ?></p>
+			<p class="model__text t-lead"><?php echo esc_html( $text ); ?></p>
 		<?php endif; ?>
 	</div>
 
@@ -40,7 +41,7 @@ if ( ! $poster ) {
 		<model-viewer
 			src="<?php echo esc_url( $model_url ); ?>"
 			alt="<?php echo esc_attr( $heading ? $heading : __( 'Interactive 3D model', 'awaqi' ) ); ?>"
-			<?php if ( $poster ) : ?>poster="<?php echo esc_url( $poster ); ?>"<?php endif; ?>
+			poster="<?php echo esc_url( $poster ); ?>"
 			camera-controls
 			touch-action="pan-y"
 			auto-rotate

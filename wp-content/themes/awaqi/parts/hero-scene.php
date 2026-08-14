@@ -7,10 +7,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$scene_url = awaqi_option( 'awaqi_scene_url', AWAQI_DEFAULT_SCENE );
-$heading   = awaqi_option( 'awaqi_hero_heading' );
-$text      = awaqi_option( 'awaqi_hero_text' );
-$hint      = awaqi_option( 'awaqi_hint_text' );
+$scene_url = awaqi_field( 'awaqi_scene_url' );
+$heading   = awaqi_field( 'awaqi_hero_heading' );
+$text      = awaqi_field( 'awaqi_hero_text' );
+$hint      = awaqi_field( 'awaqi_hint_text' );
 ?>
 
 <?php if ( $scene_url ) : ?>
@@ -34,11 +34,11 @@ $hint      = awaqi_option( 'awaqi_hint_text' );
 	<div class="hero-row">
 		<div class="hero">
 			<?php if ( $heading ) : ?>
-				<h1 class="hero__title"><?php echo esc_html( $heading ); ?></h1>
+				<h1 class="hero__title t-hero"><?php echo esc_html( $heading ); ?></h1>
 			<?php endif; ?>
 
 			<?php if ( $text ) : ?>
-				<p class="hero__text"><?php echo esc_html( $text ); ?></p>
+				<p class="hero__text t-lead"><?php echo esc_html( $text ); ?></p>
 			<?php endif; ?>
 		</div>
 

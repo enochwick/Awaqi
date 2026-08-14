@@ -1,9 +1,6 @@
 <?php
 /**
- * Fallback template.
- *
- * Required by WordPress. home.php, archive.php, page.php and single.php take
- * precedence — this catches anything they do not.
+ * Blog index.
  *
  * @package Awaqi
  */

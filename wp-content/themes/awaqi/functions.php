@@ -7,12 +7,23 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'AWAQI_VERSION', '1.0.0' );
+define( 'AWAQI_VERSION', '1.1.0' );
 
 /**
- * The Spline scene the front page renders when nothing is set in the Customizer.
+ * The Spline scene the front page renders when nothing is configured.
  */
 define( 'AWAQI_DEFAULT_SCENE', 'https://my.spline.design/awaqiaiformobile-petbTiUGXaQcJ56veNakhd4C/' );
+
+/**
+ * Path to the bundled GLB, relative to the theme.
+ */
+define( 'AWAQI_MODEL_PATH', '/assets/models/interior.glb' );
+
+require_once get_template_directory() . '/inc/acf-fields.php';
+
+/* ---------------------------------------------------------------------------
+ * Setup
+ * ------------------------------------------------------------------------ */
 
 /**
  * Theme supports and menu registration.
@@ -22,8 +33,6 @@ function awaqi_setup() {
 	add_theme_support( 'post-thumbnails' );
 	add_theme_support( 'automatic-feed-links' );
 	add_theme_support( 'responsive-embeds' );
-	add_theme_support( 'align-wide' );
-	add_theme_support( 'editor-styles' );
 	add_theme_support( 'custom-logo', array(
 		'height'      => 56,
 		'width'       => 240,
@@ -40,9 +49,13 @@ function awaqi_setup() {
 }
 add_action( 'after_setup_theme', 'awaqi_setup' );
 
+/* ---------------------------------------------------------------------------
+ * Assets
+ * ------------------------------------------------------------------------ */
+
 /**
- * Front-end assets. Versioned by file mtime so a deploy busts the cache without
- * anyone having to remember to bump a number.
+ * Front-end styles and scripts. Versioned by file mtime so a deploy busts the
+ * cache without anyone having to remember to bump a number.
  */
 function awaqi_assets() {
 	$dir = get_template_directory();
@@ -55,6 +68,14 @@ function awaqi_assets() {
 		awaqi_asset_version( $dir . '/assets/css/main.css' )
 	);
 
+	wp_enqueue_script(
+		'awaqi-main',
+		$uri . '/assets/js/main.js',
+		array(),
+		awaqi_asset_version( $dir . '/assets/js/main.js' ),
+		true
+	);
+
 	if ( awaqi_is_scene() ) {
 		wp_enqueue_script(
 			'awaqi-scene',
@@ -63,17 +84,17 @@ function awaqi_assets() {
 			awaqi_asset_version( $dir . '/assets/js/scene.js' ),
 			true
 		);
-	}
 
-	// model-viewer is a ~1 MB bundle, so it only loads on views that show a model.
-	if ( awaqi_has_model() && awaqi_is_scene() ) {
-		wp_enqueue_script(
-			'awaqi-model-viewer',
-			$uri . '/assets/js/vendor/model-viewer.min.js',
-			array(),
-			'4.3.1',
-			true
-		);
+		// model-viewer is a ~1 MB bundle, so it loads only where a model shows.
+		if ( awaqi_has_model() ) {
+			wp_enqueue_script(
+				'awaqi-model-viewer',
+				$uri . '/assets/js/vendor/model-viewer.min.js',
+				array(),
+				'4.3.1',
+				true
+			);
+		}
 	}
 }
 add_action( 'wp_enqueue_scripts', 'awaqi_assets' );
@@ -104,6 +125,10 @@ function awaqi_module_script( $tag, $handle ) {
 }
 add_filter( 'script_loader_tag', 'awaqi_module_script', 10, 2 );
 
+/* ---------------------------------------------------------------------------
+ * Conditionals
+ * ------------------------------------------------------------------------ */
+
 /**
  * Whether the current view is the immersive 3D scene.
  *
@@ -112,11 +137,6 @@ add_filter( 'script_loader_tag', 'awaqi_module_script', 10, 2 );
 function awaqi_is_scene() {
 	return is_front_page() && ! is_paged();
 }
-
-/**
- * Path to the bundled GLB, relative to the theme.
- */
-define( 'AWAQI_MODEL_PATH', '/assets/models/interior.glb' );
 
 /**
  * Whether an optimized model is present in the theme.
@@ -146,36 +166,36 @@ function awaqi_model_url() {
 }
 
 /**
- * Lock scrolling on the scene view only.
+ * Body classes.
  *
  * @param array $classes Body classes.
  * @return array
  */
 function awaqi_body_class( $classes ) {
 	if ( awaqi_is_scene() ) {
-		// With a model section below it the page has to scroll; without one the
-		// scene stays a locked single screen.
-		$classes[] = awaqi_has_model() ? 'awaqi-scene awaqi-scene--scroll' : 'awaqi-scene';
+		$classes[] = 'is-scene';
+
+		// With a model section below it the page has to scroll.
+		if ( awaqi_has_model() ) {
+			$classes[] = 'is-scene-scroll';
+		}
 	}
 
 	return $classes;
 }
 add_filter( 'body_class', 'awaqi_body_class' );
 
-/**
- * Theme options. Everything the client-facing copy needs lives in the
- * Customizer so the site can be edited without touching a deploy.
- *
- * @param WP_Customize_Manager $wp_customize Customizer instance.
- */
-function awaqi_customize_register( $wp_customize ) {
-	$wp_customize->add_section( 'awaqi_scene', array(
-		'title'       => __( 'Awaqi — Scene & Hero', 'awaqi' ),
-		'priority'    => 25,
-		'description' => __( 'Controls the interactive 3D scene and the copy layered over it on the front page.', 'awaqi' ),
-	) );
+/* ---------------------------------------------------------------------------
+ * Customizer — fallback field storage when ACF is not installed
+ * ------------------------------------------------------------------------ */
 
-	$fields = array(
+/**
+ * Field definitions, shared by the Customizer and inc/acf-fields.php.
+ *
+ * @return array
+ */
+function awaqi_fields() {
+	return array(
 		'awaqi_scene_url' => array(
 			'default'  => AWAQI_DEFAULT_SCENE,
 			'label'    => __( 'Spline scene URL', 'awaqi' ),
@@ -233,11 +253,24 @@ function awaqi_customize_register( $wp_customize ) {
 			'label'    => __( 'Model poster image URL', 'awaqi' ),
 			'type'     => 'url',
 			'sanitize' => 'esc_url_raw',
-			'help'     => __( 'Shown while the model loads. Use one of the 4K renders.', 'awaqi' ),
+			'help'     => __( 'Shown while the model loads. Defaults to the bundled render.', 'awaqi' ),
 		),
 	);
+}
 
-	foreach ( $fields as $id => $field ) {
+/**
+ * Registers the Customizer panel.
+ *
+ * @param WP_Customize_Manager $wp_customize Customizer instance.
+ */
+function awaqi_customize_register( $wp_customize ) {
+	$wp_customize->add_section( 'awaqi_scene', array(
+		'title'       => __( 'Awaqi — Scene & Hero', 'awaqi' ),
+		'priority'    => 25,
+		'description' => __( 'Controls the interactive 3D scene and the copy layered over it. When ACF is active, its Scene & Hero options page takes precedence.', 'awaqi' ),
+	) );
+
+	foreach ( awaqi_fields() as $id => $field ) {
 		$wp_customize->add_setting( $id, array(
 			'default'           => $field['default'],
 			'sanitize_callback' => $field['sanitize'],
@@ -255,26 +288,39 @@ function awaqi_customize_register( $wp_customize ) {
 add_action( 'customize_register', 'awaqi_customize_register' );
 
 /**
- * Read a theme option, falling back to its registered default.
+ * Reads a Customizer value, falling back to its registered default.
+ *
+ * Templates should call awaqi_field() instead — it checks ACF first.
  *
  * @param string $key     Option key.
  * @param string $default Fallback value.
  * @return string
  */
 function awaqi_option( $key, $default = '' ) {
+	if ( '' === $default ) {
+		$fields = awaqi_fields();
+
+		if ( isset( $fields[ $key ]['default'] ) ) {
+			$default = $fields[ $key ]['default'];
+		}
+	}
+
 	$value = get_theme_mod( $key, $default );
 
 	return is_string( $value ) ? $value : $default;
 }
 
+/* ---------------------------------------------------------------------------
+ * Template helpers
+ * ------------------------------------------------------------------------ */
+
 /**
- * Renders the site brand — custom logo when one is set, wordmark otherwise.
+ * Renders the site brand — custom logo when set, wordmark otherwise.
  */
 function awaqi_brand() {
 	if ( has_custom_logo() ) {
-		$logo = get_custom_logo();
 		// Reuse the brand class so spacing matches the wordmark variant.
-		echo str_replace( 'custom-logo-link', 'custom-logo-link brand', $logo ); // phpcs:ignore WordPress.Security.EscapeOutput
+		echo str_replace( 'custom-logo-link', 'custom-logo-link brand', get_custom_logo() ); // phpcs:ignore WordPress.Security.EscapeOutput
 		return;
 	}
 
@@ -292,12 +338,11 @@ function awaqi_brand() {
 }
 
 /**
- * Primary nav, with the CTA button appended. Falls back to a page list when no
- * menu has been assigned yet, so a fresh install still looks intentional.
+ * Primary nav with the CTA button appended. Falls back to the CTA alone when
+ * no menu has been assigned, so a fresh install still looks intentional.
  */
 function awaqi_nav() {
-	$cta_label = awaqi_option( 'awaqi_cta_label', __( 'Join waitlist', 'awaqi' ) );
-	$cta_url   = awaqi_option( 'awaqi_cta_url', '#waitlist' );
+	$cta = awaqi_cta_item( awaqi_field( 'awaqi_cta_label' ), awaqi_field( 'awaqi_cta_url' ) );
 	?>
 	<nav class="nav" aria-label="<?php esc_attr_e( 'Primary', 'awaqi' ); ?>">
 		<?php
@@ -306,11 +351,11 @@ function awaqi_nav() {
 				'theme_location' => 'primary',
 				'container'      => '',
 				'depth'          => 1,
-				'items_wrap'     => '<ul>%3$s' . awaqi_cta_item( $cta_label, $cta_url ) . '</ul>',
+				'items_wrap'     => '<ul>%3$s' . $cta . '</ul>',
 				'fallback_cb'    => false,
 			) );
 		} else {
-			echo '<ul>' . awaqi_cta_item( $cta_label, $cta_url ) . '</ul>'; // phpcs:ignore WordPress.Security.EscapeOutput
+			echo '<ul>' . $cta . '</ul>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
 		?>
 	</nav>
