@@ -143,10 +143,11 @@ function awaqi_fields() {
 			'help'     => __( 'Paste the public share URL from Spline.', 'awaqi' ),
 		),
 		'awaqi_hero_heading' => array(
-			'default'  => __( 'Intelligence that moves with you.', 'awaqi' ),
+			'default'  => __( "Intelligence that\nmoves with you.", 'awaqi' ),
 			'label'    => __( 'Hero heading', 'awaqi' ),
-			'type'     => 'text',
-			'sanitize' => 'sanitize_text_field',
+			'type'     => 'textarea',
+			'sanitize' => 'sanitize_textarea_field',
+			'help'     => __( 'Each new line becomes a line break on desktop. Small screens wrap on their own.', 'awaqi' ),
 		),
 		'awaqi_hero_text' => array(
 			'default'  => __( 'Awaqi AI brings context, memory, and real-time reasoning to the device already in your pocket.', 'awaqi' ),

@@ -350,15 +350,18 @@ body.is-scene-scroll {
 }
 
 /* The embed is cross-origin, so its bottom-right badge cannot be styled. The
-   iframe is instead sized past the viewport and anchored top-left, pushing that
-   corner outside the clip. Nothing is overlaid, so the scene stays clean. */
+   iframe is instead run past the bottom edge and clipped, which drops that
+   corner out of view.
+
+   Width stays at exactly 100%: widening it lets the scene's own background
+   show down the left and right sides as dark bands. Only the height grows. */
 .scene iframe {
   display: block;
   position: absolute;
   top: 0;
   left: 0;
-  width: calc(100% + 15rem);
-  height: calc(100% + 6.5rem);
+  width: 100%;
+  height: calc(100% + 5rem);
   border: 0;
   opacity: 0;
   transition: opacity var(--duration-lg) var(--ease);
@@ -380,23 +383,6 @@ body.is-scene-scroll {
 @media (max-width: 47.99rem) {
   /* The scene is rendered into a larger viewport and scaled down, which pushes
      the subject further away and clears the top of the frame for the wordmark. */
-  /* Pushes the subject further back so the wordmark clears it.
-     Centring is done with a transform, not percentage margins: margin
-     percentages resolve against the container's WIDTH even vertically, which
-     on a tall phone leaves a gap at the top of the frame. Transform
-     percentages use the element's own box, so the geometry holds.
-     Visual height = 150% x 0.76 = 114%, centred to -7%..107%, then nudged
-     down 5.7% -> -1.3%..112.7%. Covers, and the badge clips out bottom-right. */
-  .scene iframe {
-    top: 50%;
-    left: 50%;
-    width: 150%;
-    height: 150%;
-    margin: 0;
-    transform: translate(-50%, -50%) scale(0.76) translateY(5%);
-    transform-origin: center center;
-  }
-
   /* A deeper, longer scrim so the headline stays readable on small screens. */
   .scene-veil {
     background: var(--veil-top-sm), var(--veil-bottom-sm);
@@ -501,8 +487,17 @@ body.is-scene-scroll {
   }
 }
 
+/* Sized in rem, not ch. A ch here resolves against .hero's own 1rem font
+   rather than the headline's, which capped the column at roughly 240px and
+   shredded the h1 across five lines. */
 .hero {
-  max-width: 30ch;
+  max-width: 28rem;
+}
+
+@media (min-width: 48rem) {
+  .hero {
+    max-width: 40rem;
+  }
 }
 
 .hero__title {
@@ -510,16 +505,20 @@ body.is-scene-scroll {
   text-wrap: balance;
 }
 
-/* Holds the headline to two lines on wider screens rather than letting it
-   run to a single long measure. */
-@media (min-width: 48rem) {
-  .hero__title {
-    max-width: 17ch;
-  }
-}
-
 .hero__text {
   max-width: 42ch;
+}
+
+/* A newline in the heading field becomes this break. It only applies from the
+   tablet breakpoint up, so narrow screens wrap on their own. */
+.brk {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .brk {
+    display: inline;
+  }
 }
 
 /* ── Hint ──────────────────────────────────────────────────── */

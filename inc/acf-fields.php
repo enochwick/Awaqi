@@ -95,8 +95,10 @@ function awaqi_acf_fields() {
 				'key'           => 'field_awaqi_hero_heading',
 				'label'         => __( 'Hero heading', 'awaqi' ),
 				'name'          => 'awaqi_hero_heading',
-				'type'          => 'text',
-				'default_value' => 'Intelligence that moves with you.',
+				'type'          => 'textarea',
+				'rows'          => 2,
+				'instructions'  => __( 'Each new line becomes a line break on desktop.', 'awaqi' ),
+				'default_value' => "Intelligence that\nmoves with you.",
 			),
 			array(
 				'key'           => 'field_awaqi_hero_text',

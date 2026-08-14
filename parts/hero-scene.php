@@ -34,7 +34,21 @@ $hint      = awaqi_field( 'awaqi_hint_text' );
 	<div class="hero-row">
 		<div class="hero">
 			<?php if ( $heading ) : ?>
-				<h1 class="hero__title t-hero"><?php echo esc_html( $heading ); ?></h1>
+				<h1 class="hero__title t-hero">
+					<?php
+					/*
+					 * A newline in the heading field becomes a line break that only
+					 * applies on wider screens. Escaped first, so the only markup
+					 * in the output is the break this adds.
+					 *
+					 * The trailing space matters: the break is display:none on small
+					 * screens, and without it the two lines would run together as
+					 * "Intelligence thatmoves". A space directly after a <br> is
+					 * collapsed at the start of the new line, so desktop is unaffected.
+					 */
+					echo preg_replace( '/\R/', '<br class="brk"> ', esc_html( $heading ) ); // phpcs:ignore WordPress.Security.EscapeOutput
+					?>
+				</h1>
 			<?php endif; ?>
 
 			<?php if ( $text ) : ?>
