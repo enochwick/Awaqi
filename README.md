@@ -242,6 +242,11 @@ that fires after a successful signup — no template changes needed.
 The form posts to `admin-post.php` and redirects back to `#waitlist` with a
 status, so it works with JavaScript disabled.
 
+Because that redirect is a full page load, the intro loader would otherwise
+replay every time someone signs up. `awaqi_is_waitlist_return()` suppresses it
+server-side, so the curtain belongs to a first visit only — no flash, no
+client-side guesswork.
+
 Editable copy lives in **Appearance → Customize → Awaqi — Scene & Hero**
 (or the ACF options page): heading, paragraph, button label, success message.
 

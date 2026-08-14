@@ -154,6 +154,19 @@ function awaqi_notify_admin( $email ) {
 }
 
 /**
+ * Whether this request is the redirect back from a form submission.
+ *
+ * The handler POSTs to admin-post.php and redirects, so the front page loads a
+ * second time. The intro loader belongs to a first visit only — replaying it
+ * after someone signs up makes the site feel like it restarted.
+ *
+ * @return bool
+ */
+function awaqi_is_waitlist_return() {
+	return isset( $_GET['joined'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+}
+
+/**
  * The message to show after a redirect back from the handler.
  *
  * @return array{type:string,text:string}|null

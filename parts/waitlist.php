@@ -53,7 +53,7 @@ $notice  = awaqi_waitlist_notice();
 				</p>
 			<?php endif; ?>
 
-			<p class="form__fine"><?php esc_html_e( 'One email when we launch. No newsletter, no sharing your address.', 'awaqi' ); ?></p>
+			<p class="form__fine"><?php esc_html_e( 'One email at launch. Zero spam. Zero sharing.', 'awaqi' ); ?></p>
 		</form>
 	</div>
 </section>

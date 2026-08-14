@@ -128,7 +128,7 @@ function awaqi_acf_fields() {
 				'label'         => __( 'Waitlist heading', 'awaqi' ),
 				'name'          => 'awaqi_waitlist_heading',
 				'type'          => 'text',
-				'default_value' => 'Be first through the door.',
+				'default_value' => 'Be first in line.',
 			),
 			array(
 				'key'           => 'field_awaqi_waitlist_text',
@@ -136,7 +136,7 @@ function awaqi_acf_fields() {
 				'name'          => 'awaqi_waitlist_text',
 				'type'          => 'textarea',
 				'rows'          => 3,
-				'default_value' => 'Join the waitlist and we will let you know the moment Awaqi opens up.',
+				'default_value' => 'Join the waitlist and we’ll let you know as soon as Awaqi goes live.',
 			),
 			array(
 				'key'           => 'field_awaqi_waitlist_button',

@@ -58,7 +58,7 @@ $text      = awaqi_field( 'awaqi_hero_text' );
 	</div>
 </div>
 
-<?php if ( $scene_url ) : ?>
+<?php if ( $scene_url && ! awaqi_is_waitlist_return() ) : ?>
 	<div class="loader" data-loader>
 		<?php
 		/*

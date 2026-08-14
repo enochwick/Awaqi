@@ -169,13 +169,13 @@ function awaqi_fields() {
 			'sanitize' => 'sanitize_text_field',
 		),
 		'awaqi_waitlist_heading' => array(
-			'default'  => __( 'Be first through the door.', 'awaqi' ),
+			'default'  => __( 'Be first in line.', 'awaqi' ),
 			'label'    => __( 'Waitlist heading', 'awaqi' ),
 			'type'     => 'text',
 			'sanitize' => 'sanitize_text_field',
 		),
 		'awaqi_waitlist_text' => array(
-			'default'  => __( 'Join the waitlist and we will let you know the moment Awaqi opens up.', 'awaqi' ),
+			'default'  => __( 'Join the waitlist and we’ll let you know as soon as Awaqi goes live.', 'awaqi' ),
 			'label'    => __( 'Waitlist paragraph', 'awaqi' ),
 			'type'     => 'textarea',
 			'sanitize' => 'sanitize_textarea_field',
