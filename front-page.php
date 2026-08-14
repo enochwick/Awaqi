@@ -16,9 +16,7 @@ get_header();
 <main id="content">
 	<?php
 	get_template_part( 'parts/hero-scene' );
-
-	// Renders only when an optimized GLB is bundled with the theme.
-	get_template_part( 'parts/model' );
+	get_template_part( 'parts/waitlist' );
 	?>
 </main>
 

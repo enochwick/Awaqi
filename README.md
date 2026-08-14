@@ -21,19 +21,17 @@ home.php  archive.php      Blog index and archives
 page.php  single.php       Content templates
 index.php  404.php         Fallback and not-found
 inc/acf-fields.php         ACF field group + awaqi_field() resolver
-parts/                     hero-scene.php, model.php, post-list.php
+inc/waitlist.php           Signup storage, handler and admin screen
+parts/                     hero-scene.php, waitlist.php, post-list.php
 assets/css/main.css        ALL styles — one file, token-based
 assets/js/main.js          Global JS
 assets/js/scene.js         Front-page loader → scene cross-fade
-assets/js/vendor/          model-viewer, self-hosted
-assets/images/             Static images
-assets/models/             Optimized GLB
 
 ── tooling, excluded from deploys ──
 deploy.php                 Deployer recipe (alternative SSH path)
 .cpanel.yml                cPanel Git deployment (alternative path)
 composer.json              Pulls in Deployer
-tools/model-to-glb.py      Blender: OBJ/FBX/glTF → Draco GLB
+tools/model-to-glb.py      Blender: OBJ/FBX/glTF → Draco GLB (unused; kept for future models)
 docs/static-preview.html   The original static HTML version
 raw-3d/                    Raw 3D source (git-ignored)
 SKILL.md                   Theme development conventions
@@ -209,67 +207,36 @@ rollback a symlink flip rather than a redeploy.
 > directly to `{wp_path}/wp-content/themes/awaqi-releases` and adapt
 > `wp:link_theme` — or switch to Deployer's `rsync` recipe.
 
-## The 3D model
+## The waitlist
 
-The front page shows an **American bison** below the Spline scene, rendered by
-a self-hosted `<model-viewer>`.
+The front page shows a signup form below the Spline scene. Signups are stored
+in WordPress itself — no plugin, no external service.
 
-| | |
-| --- | --- |
-| Source | 3.7 MB OBJ, 40,952 triangles, 1 material |
-| Output | `assets/models/bison.glb` — **0.33 MB**, Draco-compressed |
-| Texture | 2048px photogrammetry atlas, downscaled to 1024px, embedded |
-| Geometry | kept in full; no decimation needed |
-| Poster | `assets/images/bison-poster.jpg` (136 KB Blender render) |
+- **Where they land:** an `awaqi_lead` custom post type, listed under
+  **Waitlist** in wp-admin. The list is read-only (new entries cannot be added
+  by hand) and shows the address and the date.
+- **Notification:** the site admin gets an email per signup. Disable it with
+  `add_filter( 'awaqi_notify_admin', '__return_false' );`
+- **Spam:** an off-screen honeypot field. Bots that fill it get a success
+  response and are silently discarded.
+- **Security:** nonce-verified, `sanitize_email()` then `is_email()`, and
+  duplicates are treated as success so the form never reveals who is on the list.
 
-`raw-3d/` holds raw 3D source and is **git-ignored on purpose** — keep raw
-sources in cloud storage and commit only the optimized GLB.
+The form posts to `admin-post.php` and redirects back to `#waitlist` with a
+status, so it works with JavaScript disabled.
 
-### Rebuilding it
+Editable copy lives in **Appearance → Customize → Awaqi — Scene & Hero**
+(or the ACF options page): heading, paragraph, button label, success message.
 
-```bash
-/Applications/Blender.app/Contents/MacOS/Blender --background \
-  --python tools/model-to-glb.py -- \
-  raw-3d/bison/model.obj \
-  assets/models/bison.glb \
-  0 1024
-```
+## The Spline badge
 
-Arguments are `<input> <output.glb> [target_tris] [tex_size]`. `0` keeps all
-geometry. The script takes OBJ, FBX or glTF.
-
-**Texture gotcha:** the source `.mtl` declares `map_Kd Image_0.jpg` but ships
-the file inside a `texture/` subfolder, so the reference does not resolve until
-the image sits beside the `.mtl`. The textures also arrive in a *solid* RAR,
-which `bsdtar` cannot read — `brew install unar` handles it.
-
-### Camera framing
-
-The bison is a single object centred on the origin, so `<model-viewer>`'s own
-auto-framing is correct and no manual `camera-target` is needed. The opening
-orbit is a three-quarter view chosen to match the poster, so the swap from
-still to live model is seamless:
-
-```
-camera-orbit="-32deg 76deg auto"
-```
-
-Auto-rotate is on with a short delay, and `shadow-intensity` grounds the animal.
-
-> A model that is *not* a centred single object usually needs an explicit
-> `camera-target` and `camera-orbit` computed from its bounds — an interior or a
-> corridor will otherwise open outside its own geometry, framing a closed shell.
-
-### Swapping in a different model
-
-1. Convert the source with `tools/model-to-glb.py`
-2. Drop the GLB in `assets/models/`
-3. Update `AWAQI_MODEL_PATH` in `functions.php`
-4. Check the framing, and set `camera-orbit` / `camera-target` if it needs them
-5. Replace the poster in `assets/images/`
-
-To hide the section entirely, delete the GLB — the section and its 1 MB viewer
-script only load when that file is present.
+`.scene-mask` covers the "Built with Spline" badge in the bottom-right of the
+embed. Be aware of what this is: the embed is cross-origin, so it cannot be
+styled or modified — the badge is **covered, not removed**. If the badge is
+there because the scene is on a free Spline plan, hiding it is a licensing
+question rather than a technical one. The clean alternatives are a paid Spline
+plan, or Spline's code export (`@splinetool/runtime`), which renders in your own
+canvas with no badge at all.
 
 ## Conventions
 

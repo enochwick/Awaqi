@@ -23,6 +23,7 @@ $hint      = awaqi_field( 'awaqi_hint_text' );
 			referrerpolicy="no-referrer-when-downgrade"></iframe>
 	</div>
 	<div class="scene-veil" aria-hidden="true"></div>
+	<div class="scene-mask" aria-hidden="true"></div>
 <?php endif; ?>
 
 <div class="overlay">

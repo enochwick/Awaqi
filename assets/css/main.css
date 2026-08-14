@@ -28,6 +28,16 @@
   --glow-violet:   0 0 16px 2px rgba(124, 92, 255, 0.7);
   --veil-top:      linear-gradient(180deg, rgba(5, 6, 10, 0.72) 0%, rgba(5, 6, 10, 0) 32%);
   --veil-bottom:   linear-gradient(0deg,   rgba(5, 6, 10, 0.82) 0%, rgba(5, 6, 10, 0) 40%);
+  /* Deeper scrims for small screens, where the headline sits closer to the art */
+  --veil-top-sm:   linear-gradient(180deg, rgba(5, 6, 10, 0.78) 0%, rgba(5, 6, 10, 0) 26%);
+  --veil-bottom-sm: linear-gradient(0deg,
+                      rgba(5, 6, 10, 0.96) 0%,
+                      rgba(5, 6, 10, 0.88) 22%,
+                      rgba(5, 6, 10, 0.62) 42%,
+                      rgba(5, 6, 10, 0) 66%);
+  --mask-corner:   radial-gradient(120% 120% at 100% 100%,
+                      var(--color-ink) 0%, var(--color-ink) 42%, rgba(5, 6, 10, 0) 78%);
+  --color-error:   #FF9B8A;
 
   /* Typography */
   --font-primary:   ui-sans-serif, -apple-system, "SF Pro Text", "Segoe UI", Inter, system-ui, sans-serif;
@@ -164,8 +174,8 @@ a {
   }
 }
 
-/* The scene view is a locked single screen — unless a model section
-   follows it, in which case the page scrolls over the fixed scene. */
+/* The scene is a locked single screen on its own; the front page adds
+   is-scene-scroll so the waitlist can scroll up over the fixed scene. */
 body.is-scene {
   overflow: hidden;
 }
@@ -237,26 +247,21 @@ body.is-scene-scroll {
 
 .brand {
   display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-lg);
+  align-items: baseline;
+  gap: 0;
+  /* Matches the hero headline's treatment so the wordmark and the h1 read as
+     one voice: same family, same weight, same tight tracking. */
+  font-size: var(--text-2xl);
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.035em;
+  line-height: 1;
   text-decoration: none;
-}
-
-.brand__dot {
-  flex: none;
-  width: 9px;
-  height: 9px;
-  border-radius: var(--radius-full);
-  background: var(--color-violet);
-  box-shadow: var(--glow-violet);
 }
 
 .brand__suffix {
   color: var(--color-text-2);
-  font-weight: 400;
+  font-weight: 600;
+  letter-spacing: -0.035em;
 }
 
 .brand img {
@@ -360,6 +365,44 @@ body.is-scene-scroll {
   z-index: 1;
   pointer-events: none;
   background: var(--veil-top), var(--veil-bottom);
+}
+
+/* Covers the third-party badge in the bottom-right of the embed. The embed is
+   cross-origin, so it cannot be styled directly — this masks it instead. */
+.scene-mask {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  width: 12rem;
+  height: 4rem;
+  pointer-events: none;
+  background: var(--mask-corner);
+}
+
+@media (max-width: 47.99rem) {
+  /* The scene is rendered into a larger viewport and scaled down, which pushes
+     the subject further away and clears the top of the frame for the wordmark. */
+  /* Sized to 150% and scaled to 0.76 so the frame still covers after the
+     downward nudge: 50% ± (75% × 0.76) = -7%..107%, minus a 5.7% shift. */
+  .scene iframe {
+    width: 150%;
+    height: 150%;
+    margin-left: -25%;
+    margin-top: -25%;
+    transform: scale(0.76) translateY(5%);
+    transform-origin: center center;
+  }
+
+  /* A deeper, longer scrim so the headline stays readable on small screens. */
+  .scene-veil {
+    background: var(--veil-top-sm), var(--veil-bottom-sm);
+  }
+
+  .scene-mask {
+    width: 9rem;
+    height: 3.25rem;
+  }
 }
 
 /* ── Loader ────────────────────────────────────────────────── */
@@ -466,6 +509,15 @@ body.is-scene-scroll {
 
 .hero__title {
   margin-bottom: var(--space-3);
+  text-wrap: balance;
+}
+
+/* Holds the headline to two lines on wider screens rather than letting it
+   run to a single long measure. */
+@media (min-width: 48rem) {
+  .hero__title {
+    max-width: 17ch;
+  }
 }
 
 .hero__text {
@@ -490,9 +542,9 @@ body.is-scene-scroll {
   opacity: 0.7;
 }
 
-/* ── Model ─────────────────────────────────────────────────── */
+/* ── Waitlist ──────────────────────────────────────────────── */
 
-.model {
+.waitlist {
   position: relative;
   z-index: 3;
   /* Opaque so it cleanly covers the fixed scene as it scrolls up. */
@@ -502,49 +554,107 @@ body.is-scene-scroll {
 }
 
 @media (min-width: 48rem) {
-  .model {
+  .waitlist {
     padding: var(--space-24) var(--gutter) var(--space-20);
   }
 }
 
-.model__intro {
-  max-width: 40rem;
-  margin: 0 auto var(--space-10);
+.waitlist__in {
+  max-width: 34rem;
+  margin: 0 auto;
   text-align: center;
 }
 
-.model__title {
+.waitlist__title {
   margin-bottom: var(--space-3);
 }
 
-.model__stage {
-  max-width: var(--wide-width);
-  margin: 0 auto;
+.waitlist__text {
+  margin-bottom: var(--space-8);
 }
 
-model-viewer {
-  display: block;
-  width: 100%;
-  height: clamp(22.5rem, 62vh, 42.5rem);
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-ink);
-  --poster-color: transparent;
-  --progress-bar-color: var(--color-violet);
-}
+/* ── Form ──────────────────────────────────────────────────── */
 
-.model__loading {
+.form__row {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.model__hint {
-  justify-content: center;
-  margin-top: var(--space-5);
+@media (min-width: 34rem) {
+  .form__row {
+    flex-direction: row;
+  }
+}
+
+.form__input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-ink);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--text-base);
+  transition: border-color var(--duration) var(--ease);
+}
+
+.form__input::placeholder {
+  color: var(--color-text-4);
+}
+
+.form__input:hover {
+  border-color: var(--color-text-3);
+}
+
+.form__input:focus {
+  outline: none;
+  border-color: var(--color-violet);
+}
+
+.form__btn {
+  flex: none;
+  padding: var(--space-3) var(--space-6);
+  border-color: transparent;
+  background: var(--color-violet);
+  color: var(--color-ink);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--text-base);
+}
+
+.form__btn:hover {
+  background: var(--color-violet-light);
+}
+
+/* Honeypot — off-screen rather than display:none, which some bots detect. */
+.form__hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.form__note {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.form__note--ok {
+  color: var(--color-violet);
+}
+
+.form__note--error {
+  color: var(--color-error);
+}
+
+.form__fine {
+  margin-top: var(--space-4);
+  color: var(--color-text-3);
+  font-size: var(--text-sm);
 }
 
 /* ── Entry ─────────────────────────────────────────────────── */

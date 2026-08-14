@@ -14,12 +14,8 @@ define( 'AWAQI_VERSION', '1.1.0' );
  */
 define( 'AWAQI_DEFAULT_SCENE', 'https://my.spline.design/awaqiaiformobile-petbTiUGXaQcJ56veNakhd4C/' );
 
-/**
- * Path to the bundled GLB, relative to the theme.
- */
-define( 'AWAQI_MODEL_PATH', '/assets/models/bison.glb' );
-
 require_once get_template_directory() . '/inc/acf-fields.php';
+require_once get_template_directory() . '/inc/waitlist.php';
 
 /* ---------------------------------------------------------------------------
  * Setup
@@ -84,17 +80,6 @@ function awaqi_assets() {
 			awaqi_asset_version( $dir . '/assets/js/scene.js' ),
 			true
 		);
-
-		// model-viewer is a ~1 MB bundle, so it loads only where a model shows.
-		if ( awaqi_has_model() ) {
-			wp_enqueue_script(
-				'awaqi-model-viewer',
-				$uri . '/assets/js/vendor/model-viewer.min.js',
-				array(),
-				'4.3.1',
-				true
-			);
-		}
 	}
 }
 add_action( 'wp_enqueue_scripts', 'awaqi_assets' );
@@ -108,22 +93,6 @@ add_action( 'wp_enqueue_scripts', 'awaqi_assets' );
 function awaqi_asset_version( $path ) {
 	return file_exists( $path ) ? (string) filemtime( $path ) : AWAQI_VERSION;
 }
-
-/**
- * model-viewer ships as an ES module, which WordPress has no native flag for.
- *
- * @param string $tag    Script tag.
- * @param string $handle Script handle.
- * @return string
- */
-function awaqi_module_script( $tag, $handle ) {
-	if ( 'awaqi-model-viewer' === $handle ) {
-		$tag = str_replace( '<script ', '<script type="module" ', $tag );
-	}
-
-	return $tag;
-}
-add_filter( 'script_loader_tag', 'awaqi_module_script', 10, 2 );
 
 /* ---------------------------------------------------------------------------
  * Conditionals
@@ -139,33 +108,6 @@ function awaqi_is_scene() {
 }
 
 /**
- * Whether an optimized model is present in the theme.
- *
- * The GLB is built from raw source that never enters git, so a checkout can
- * legitimately be missing it. Everything model-related keys off this.
- *
- * @return bool
- */
-function awaqi_has_model() {
-	static $exists = null;
-
-	if ( null === $exists ) {
-		$exists = file_exists( get_template_directory() . AWAQI_MODEL_PATH );
-	}
-
-	return $exists;
-}
-
-/**
- * URL of the bundled model, or an empty string when there is none.
- *
- * @return string
- */
-function awaqi_model_url() {
-	return awaqi_has_model() ? get_template_directory_uri() . AWAQI_MODEL_PATH : '';
-}
-
-/**
  * Body classes.
  *
  * @param array $classes Body classes.
@@ -173,12 +115,9 @@ function awaqi_model_url() {
  */
 function awaqi_body_class( $classes ) {
 	if ( awaqi_is_scene() ) {
+		// The waitlist sits below the scene, so the front page always scrolls.
 		$classes[] = 'is-scene';
-
-		// With a model section below it the page has to scroll.
-		if ( awaqi_has_model() ) {
-			$classes[] = 'is-scene-scroll';
-		}
+		$classes[] = 'is-scene-scroll';
 	}
 
 	return $classes;
@@ -235,25 +174,29 @@ function awaqi_fields() {
 			'type'     => 'text',
 			'sanitize' => 'sanitize_text_field',
 		),
-		'awaqi_model_heading' => array(
-			'default'  => __( 'Every angle, in real time.', 'awaqi' ),
-			'label'    => __( 'Model section heading', 'awaqi' ),
+		'awaqi_waitlist_heading' => array(
+			'default'  => __( 'Be first through the door.', 'awaqi' ),
+			'label'    => __( 'Waitlist heading', 'awaqi' ),
 			'type'     => 'text',
 			'sanitize' => 'sanitize_text_field',
-			'help'     => __( 'Only shown when a GLB model is bundled with the theme.', 'awaqi' ),
 		),
-		'awaqi_model_text' => array(
-			'default'  => __( 'A photogrammetry scan running live in the page — drag to rotate it, scroll to move closer.', 'awaqi' ),
-			'label'    => __( 'Model section paragraph', 'awaqi' ),
+		'awaqi_waitlist_text' => array(
+			'default'  => __( 'Join the waitlist and we will let you know the moment Awaqi opens up.', 'awaqi' ),
+			'label'    => __( 'Waitlist paragraph', 'awaqi' ),
 			'type'     => 'textarea',
 			'sanitize' => 'sanitize_textarea_field',
 		),
-		'awaqi_model_poster' => array(
-			'default'  => '',
-			'label'    => __( 'Model poster image URL', 'awaqi' ),
-			'type'     => 'url',
-			'sanitize' => 'esc_url_raw',
-			'help'     => __( 'Shown while the model loads. Defaults to the bundled render.', 'awaqi' ),
+		'awaqi_waitlist_button' => array(
+			'default'  => __( 'Join waitlist', 'awaqi' ),
+			'label'    => __( 'Waitlist button label', 'awaqi' ),
+			'type'     => 'text',
+			'sanitize' => 'sanitize_text_field',
+		),
+		'awaqi_waitlist_success' => array(
+			'default'  => __( 'You are on the list. We will be in touch.', 'awaqi' ),
+			'label'    => __( 'Success message', 'awaqi' ),
+			'type'     => 'text',
+			'sanitize' => 'sanitize_text_field',
 		),
 	);
 }
@@ -328,7 +271,6 @@ function awaqi_brand() {
 	$parts = explode( ' ', $name, 2 );
 	?>
 	<a class="brand" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home">
-		<span class="brand__dot" aria-hidden="true"></span>
 		<?php echo esc_html( $parts[0] ); ?>
 		<?php if ( isset( $parts[1] ) ) : ?>
 			<span class="brand__suffix">&nbsp;<?php echo esc_html( $parts[1] ); ?></span>
