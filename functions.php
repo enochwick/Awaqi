@@ -155,13 +155,6 @@ function awaqi_fields() {
 			'type'     => 'textarea',
 			'sanitize' => 'sanitize_textarea_field',
 		),
-		'awaqi_hint_text' => array(
-			'default'  => __( 'Drag to explore', 'awaqi' ),
-			'label'    => __( 'Interaction hint', 'awaqi' ),
-			'type'     => 'text',
-			'sanitize' => 'sanitize_text_field',
-			'help'     => __( 'Leave empty to hide it.', 'awaqi' ),
-		),
 		'awaqi_cta_label' => array(
 			'default'  => __( 'Join waitlist', 'awaqi' ),
 			'label'    => __( 'Button label', 'awaqi' ),

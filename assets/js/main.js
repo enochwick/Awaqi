@@ -25,6 +25,19 @@
    * reduced motion is left alone entirely.
    */
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  /**
+   * SVG SMIL animation ignores prefers-reduced-motion and cannot be stopped
+   * from CSS, so the loader's morph is paused here instead.
+   */
+  if (reduced.matches) {
+    Array.prototype.forEach.call(document.querySelectorAll('svg'), function (svg) {
+      if (svg.querySelector('animate') && typeof svg.pauseAnimations === 'function') {
+        svg.pauseAnimations();
+      }
+    });
+  }
+
   var targets = document.querySelectorAll('[data-reveal]');
 
   if (!targets.length || reduced.matches || !('IntersectionObserver' in window)) {

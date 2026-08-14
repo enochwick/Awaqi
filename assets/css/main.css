@@ -23,9 +23,7 @@
   /* Translucent surfaces layered over the scene */
   --surface-1:     rgba(244, 245, 247, 0.08);
   --surface-2:     rgba(244, 245, 247, 0.10);
-  --surface-3:     rgba(244, 245, 247, 0.12);
   --surface-hover: rgba(244, 245, 247, 0.20);
-  --glow-violet:   0 0 16px 2px rgba(124, 92, 255, 0.7);
   --veil-top:      linear-gradient(180deg, rgba(5, 6, 10, 0.72) 0%, rgba(5, 6, 10, 0) 32%);
   --veil-bottom:   linear-gradient(0deg,   rgba(5, 6, 10, 0.82) 0%, rgba(5, 6, 10, 0) 40%);
   /* Deeper scrims for small screens, where the headline sits closer to the art */
@@ -114,6 +112,15 @@
 
 html {
   scroll-behavior: smooth;
+  /* Scrolling still works; the indicator is simply not painted. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 html,
@@ -414,30 +421,13 @@ body.is-scene-scroll {
   font-size: var(--text-xs);
   letter-spacing: 0.34em;
   text-transform: uppercase;
-  color: var(--color-text-2);
+  color: var(--color-text-3);
 }
 
-.loader__bar {
-  width: 8rem;
-  height: 2px;
-  overflow: hidden;
-  border-radius: 2px;
-  background: var(--surface-3);
-}
-
-.loader__bar::after {
-  content: "";
-  display: block;
-  width: 40%;
-  height: 100%;
-  border-radius: 2px;
-  background: var(--color-violet);
-  animation: loader-slide 1.25s var(--ease) infinite;
-}
-
-@keyframes loader-slide {
-  from { transform: translateX(-100%); }
-  to   { transform: translateX(320%); }
+.loader__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  color: var(--color-violet);
 }
 
 /* ── Overlay ───────────────────────────────────────────────── */
@@ -519,24 +509,6 @@ body.is-scene-scroll {
   .brk {
     display: inline;
   }
-}
-
-/* ── Hint ──────────────────────────────────────────────────── */
-
-.hint {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: var(--text-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-text-4);
-  white-space: nowrap;
-}
-
-.hint svg {
-  flex: none;
-  opacity: 0.7;
 }
 
 /* ── Waitlist ──────────────────────────────────────────────── */

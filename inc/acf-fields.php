@@ -109,14 +109,6 @@ function awaqi_acf_fields() {
 				'default_value' => 'Awaqi AI brings context, memory, and real-time reasoning to the device already in your pocket.',
 			),
 			array(
-				'key'           => 'field_awaqi_hint_text',
-				'label'         => __( 'Interaction hint', 'awaqi' ),
-				'name'          => 'awaqi_hint_text',
-				'type'          => 'text',
-				'instructions'  => __( 'Leave empty to hide it.', 'awaqi' ),
-				'default_value' => 'Drag to explore',
-			),
-			array(
 				'key'           => 'field_awaqi_cta_label',
 				'label'         => __( 'Button label', 'awaqi' ),
 				'name'          => 'awaqi_cta_label',

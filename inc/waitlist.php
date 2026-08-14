@@ -105,6 +105,17 @@ function awaqi_handle_waitlist() {
 		}
 
 		awaqi_notify_admin( $email );
+
+		/**
+		 * Fires after a new address is stored.
+		 *
+		 * The place to push signups to an external list (Mailchimp, ConvertKit,
+		 * Resend) without touching the template or the handler.
+		 *
+		 * @param string $email Signup address.
+		 * @param int    $id    Stored post ID.
+		 */
+		do_action( 'awaqi_waitlist_signup', $email, $id );
 	}
 
 	wp_safe_redirect( add_query_arg( 'joined', '1', $back ) . '#waitlist' );

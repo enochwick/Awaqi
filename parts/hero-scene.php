@@ -10,7 +10,6 @@ defined( 'ABSPATH' ) || exit;
 $scene_url = awaqi_field( 'awaqi_scene_url' );
 $heading   = awaqi_field( 'awaqi_hero_heading' );
 $text      = awaqi_field( 'awaqi_hero_text' );
-$hint      = awaqi_field( 'awaqi_hint_text' );
 ?>
 
 <?php if ( $scene_url ) : ?>
@@ -56,20 +55,37 @@ $hint      = awaqi_field( 'awaqi_hint_text' );
 			<?php endif; ?>
 		</div>
 
-		<?php if ( $hint ) : ?>
-			<p class="hint">
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-					<path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l3 3M16 16l3 3M19 5l-3 3M8 16l-3 3"/>
-				</svg>
-				<?php echo esc_html( $hint ); ?>
-			</p>
-		<?php endif; ?>
 	</div>
 </div>
 
 <?php if ( $scene_url ) : ?>
 	<div class="loader" data-loader>
+		<?php
+		/*
+		 * Ported from a React + motion component. The three paths share an
+		 * identical command structure (M + 4C + Z), so SVG interpolates the `d`
+		 * attribute natively — no runtime, no build step. keySplines reproduce
+		 * the original easeInOut across each of the four segments.
+		 */
+		?>
+		<svg class="loader__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+			stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+			role="status" aria-label="<?php esc_attr_e( 'Loading', 'awaqi' ); ?>">
+			<path d="M 12 8 C 14.21 8 16 9.79 16 12 C 16 14.21 14.21 16 12 16 C 9.79 16 8 14.21 8 12 C 8 9.79 9.79 8 12 8 Z">
+				<animate
+					attributeName="d"
+					dur="5s"
+					repeatCount="indefinite"
+					calcMode="spline"
+					keyTimes="0;0.25;0.5;0.75;1"
+					keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1"
+					values="M 12 8 C 14.21 8 16 9.79 16 12 C 16 14.21 14.21 16 12 16 C 9.79 16 8 14.21 8 12 C 8 9.79 9.79 8 12 8 Z;
+					        M 12 12 C 14 8.5 19 8.5 19 12 C 19 15.5 14 15.5 12 12 C 10 8.5 5 8.5 5 12 C 5 15.5 10 15.5 12 12 Z;
+					        M 12 16 C 14.21 16 16 14.21 16 12 C 16 9.79 14.21 8 12 8 C 9.79 8 8 9.79 8 12 C 8 14.21 9.79 16 12 16 Z;
+					        M 12 12 C 14 8.5 19 8.5 19 12 C 19 15.5 14 15.5 12 12 C 10 8.5 5 8.5 5 12 C 5 15.5 10 15.5 12 12 Z;
+					        M 12 8 C 14.21 8 16 9.79 16 12 C 16 14.21 14.21 16 12 16 C 9.79 16 8 14.21 8 12 C 8 9.79 9.79 8 12 8 Z" />
+			</path>
+		</svg>
 		<div class="loader__mark"><?php echo esc_html( get_bloginfo( 'name' ) ); ?></div>
-		<div class="loader__bar"></div>
 	</div>
 <?php endif; ?>

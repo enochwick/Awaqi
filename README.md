@@ -66,10 +66,12 @@ Hero**:
 | Setting | What it does |
 | --- | --- |
 | Spline scene URL | The public share URL from Spline |
-| Hero heading | Large headline over the scene |
+| Hero heading | Headline over the scene. **Each new line becomes a line break on desktop**; small screens wrap on their own |
 | Hero paragraph | Supporting line |
-| Interaction hint | Bottom-right nudge — empty hides it |
 | Button label / link | Top-right CTA — empty label hides it |
+| Waitlist heading / paragraph | The signup section |
+| Waitlist button label | Submit button text |
+| Success message | Shown after a signup |
 
 Nav items come from **Appearance → Menus**, assigned to the *Primary* location.
 The CTA button is appended automatically. With no menu assigned, only the CTA
@@ -207,10 +209,25 @@ rollback a symlink flip rather than a redeploy.
 > directly to `{wp_path}/wp-content/themes/awaqi-releases` and adapt
 > `wp:link_theme` — or switch to Deployer's `rsync` recipe.
 
-## The waitlist
+## The waitlist — where the emails go
 
-The front page shows a signup form below the Spline scene. Signups are stored
-in WordPress itself — no plugin, no external service.
+The front page shows a signup form below the Spline scene. **Nothing is wired to
+an external service.** Every signup goes to two places, both inside WordPress:
+
+1. **The database.** Each address is stored as a private `awaqi_lead` post.
+   See them under **Waitlist** in the wp-admin sidebar. Export with any CSV
+   plugin, or WP-CLI:
+   `wp post list --post_type=awaqi_lead --post_status=private --field=post_title`
+2. **An email to the site admin**, sent with `wp_mail()` to whatever address is
+   set in Settings → General.
+
+> **Check the admin email actually arrives.** Shared hosts frequently have
+> `wp_mail()` misconfigured, and it fails silently. The signup is still saved to
+> the database either way, so nothing is lost — but you will not be notified.
+> An SMTP plugin, or a transactional provider, fixes it.
+
+To send to a provider instead (Mailchimp, ConvertKit, Resend), hook the action
+that fires after a successful signup — no template changes needed.
 
 - **Where they land:** an `awaqi_lead` custom post type, listed under
   **Waitlist** in wp-admin. The list is read-only (new entries cannot be added
