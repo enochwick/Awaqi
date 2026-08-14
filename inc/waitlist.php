@@ -67,7 +67,7 @@ function awaqi_handle_waitlist() {
 
 	// Bots fill hidden fields; people do not. Fail silently so they learn nothing.
 	if ( ! empty( $_POST['awaqi_website'] ) ) {
-		wp_safe_redirect( add_query_arg( 'joined', '1', $back ) );
+		wp_safe_redirect( add_query_arg( 'joined', '1', $back ) . '#waitlist' );
 		exit;
 	}
 
@@ -119,12 +119,11 @@ function awaqi_handle_waitlist() {
 	}
 
 	/*
-	 * Deliberately no #waitlist fragment. A fragment makes the browser jump
-	 * straight to the section, which is opaque and sits over the fixed scene —
-	 * the page appears to load black. Landing at the top keeps the scene
-	 * visible, and main.js glides down to the confirmation.
+	 * The fragment puts the browser at the form on first paint, so the visitor
+	 * appears never to have moved from where they submitted. main.js then holds
+	 * on the confirmation, raises the curtain and returns them to the hero.
 	 */
-	wp_safe_redirect( add_query_arg( 'joined', '1', $back ) );
+	wp_safe_redirect( add_query_arg( 'joined', '1', $back ) . '#waitlist' );
 	exit;
 }
 add_action( 'admin_post_awaqi_waitlist', 'awaqi_handle_waitlist' );
@@ -137,7 +136,7 @@ add_action( 'admin_post_nopriv_awaqi_waitlist', 'awaqi_handle_waitlist' );
  * @param string $error Error slug.
  */
 function awaqi_waitlist_back( $back, $error ) {
-	wp_safe_redirect( add_query_arg( array( 'joined' => '0', 'err' => $error ), $back ) );
+	wp_safe_redirect( add_query_arg( array( 'joined' => '0', 'err' => $error ), $back ) . '#waitlist' );
 	exit;
 }
 

@@ -41,18 +41,17 @@
   /**
    * After a waitlist signup the page reloads with ?joined=.
    *
-   * The sequence is: glide down to the confirmation beside the form, hold long
-   * enough to read it, raise the loader curtain, jump home behind it, then
-   * lower the curtain onto the hero. The curtain is what makes the return trip
-   * feel deliberate rather than like a second page load.
+   * Nothing scrolls. The URL fragment has already painted the page at the form,
+   * so the visitor never appears to leave the spot they submitted from. The
+   * sequence is: read the confirmation, raise the loader curtain, jump home
+   * behind it, lower the curtain onto the hero with the form below the fold.
    *
    * Failures stop at the form — that is where the address gets corrected.
    */
   var STEP = {
-    toForm:  900,   // let the scene settle before moving
-    read:    2600,  // time on the confirmation
-    curtain: 700,   // curtain fade-in before jumping
-    home:    500    // beat at the top before revealing
+    read:    2200,  // time on the confirmation before the curtain
+    curtain: 700,   // curtain fade-in before jumping home
+    home:    500    // beat at the top before revealing the hero
   };
 
   function handleSignupReturn() {
@@ -62,25 +61,20 @@
       return;
     }
 
-    var failed  = search.indexOf('joined=0') !== -1;
-    var section = document.getElementById('waitlist');
-    var loader  = document.querySelector('[data-loader]');
-    var root    = document.documentElement;
-    var soft    = !reduced.matches;
+    var failed = search.indexOf('joined=0') !== -1;
+    var loader = document.querySelector('[data-loader]');
+    var root   = document.documentElement;
+    var soft   = !reduced.matches;
 
     clearFlags();
 
-    if (!section) {
-      return;
-    }
+    // The confirmation is already on screen, so it must not start hidden and
+    // fade in. Dropping the hook here means the reveal pass below skips it.
+    Array.prototype.forEach.call(document.querySelectorAll('[data-reveal]'), function (el) {
+      el.removeAttribute('data-reveal');
+    });
 
-    // Land at the top without animating the way up there.
-    scrollTop('auto');
-
-    window.setTimeout(function () {
-      section.scrollIntoView({ behavior: soft ? 'smooth' : 'auto', block: 'start' });
-    }, soft ? STEP.toForm : 0);
-
+    // A failed signup stays put: the address has to be corrected at the field.
     if (failed || !loader) {
       return;
     }
@@ -89,17 +83,18 @@
       loader.classList.add('is-transition');
 
       window.setTimeout(function () {
-        scrollTop('auto');
+        scrollTop();
 
         window.setTimeout(function () {
           loader.classList.remove('is-transition');
         }, STEP.home);
       }, soft ? STEP.curtain : 0);
-    }, (soft ? STEP.toForm : 0) + STEP.read);
+    }, STEP.read);
 
-    function scrollTop(behavior) {
+    // Jumps home behind the raised curtain, never as a visible scroll.
+    function scrollTop() {
       var previous = root.style.scrollBehavior;
-      root.style.scrollBehavior = behavior;
+      root.style.scrollBehavior = 'auto';
       window.scrollTo(0, 0);
       root.style.scrollBehavior = previous;
     }
@@ -119,6 +114,8 @@
     params.delete('err');
 
     var query = params.toString();
+
+    // Also drops the #waitlist fragment left by the redirect.
     window.history.replaceState({}, '', window.location.pathname + (query ? '?' + query : ''));
   }
 
