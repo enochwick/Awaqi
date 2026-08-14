@@ -135,7 +135,7 @@ function awaqi_acf_fields() {
 				'name'          => 'awaqi_model_heading',
 				'type'          => 'text',
 				'instructions'  => __( 'Only shown when a GLB model is bundled with the theme.', 'awaqi' ),
-				'default_value' => 'Step inside the corridor.',
+				'default_value' => 'Every angle, in real time.',
 			),
 			array(
 				'key'           => 'field_awaqi_model_text',
@@ -143,7 +143,7 @@ function awaqi_acf_fields() {
 				'name'          => 'awaqi_model_text',
 				'type'          => 'textarea',
 				'rows'          => 3,
-				'default_value' => 'A real-time environment running in your browser — drag to look around, scroll to move through it.',
+				'default_value' => 'A photogrammetry scan running live in the page — drag to rotate it, scroll to move closer.',
 			),
 			array(
 				'key'          => 'field_awaqi_model_poster',

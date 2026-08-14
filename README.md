@@ -33,8 +33,7 @@ assets/models/             Optimized GLB
 deploy.php                 Deployer recipe (alternative SSH path)
 .cpanel.yml                cPanel Git deployment (alternative path)
 composer.json              Pulls in Deployer
-tools/corridor-to-glb.py   Blender: corridor OBJ → GLB with rebuilt PBR
-tools/obj-to-glb.py        Blender: generic OBJ → decimated GLB
+tools/model-to-glb.py      Blender: OBJ/FBX/glTF → Draco GLB
 docs/static-preview.html   The original static HTML version
 raw-3d/                    Raw 3D source (git-ignored)
 SKILL.md                   Theme development conventions
@@ -212,15 +211,16 @@ rollback a symlink flip rather than a redeploy.
 
 ## The 3D model
 
-The front page shows a **Sci Fi Corridor** below the Spline scene, rendered by
+The front page shows an **American bison** below the Spline scene, rendered by
 a self-hosted `<model-viewer>`.
 
 | | |
 | --- | --- |
-| Source | 36 MB OBJ, 273,497 faces, 5 materials |
-| Output | `assets/models/corridor.glb` — 3.1 MB, Draco-compressed |
+| Source | 3.7 MB OBJ, 40,952 triangles, 1 material |
+| Output | `assets/models/bison.glb` — **0.33 MB**, Draco-compressed |
+| Texture | 2048px photogrammetry atlas, downscaled to 1024px, embedded |
 | Geometry | kept in full; no decimation needed |
-| Poster | `assets/images/corridor-poster.jpg` (90 KB Blender render) |
+| Poster | `assets/images/bison-poster.jpg` (136 KB Blender render) |
 
 `raw-3d/` holds raw 3D source and is **git-ignored on purpose** — keep raw
 sources in cloud storage and commit only the optimized GLB.
@@ -229,52 +229,44 @@ sources in cloud storage and commit only the optimized GLB.
 
 ```bash
 /Applications/Blender.app/Contents/MacOS/Blender --background \
-  --python tools/corridor-to-glb.py -- \
-  "raw-3d/Sci Fi Corridor_Obj/Sci Fi Corridor.obj" \
-  assets/models/corridor.glb
+  --python tools/model-to-glb.py -- \
+  raw-3d/bison/model.obj \
+  assets/models/bison.glb \
+  0 1024
 ```
 
-The source `.mtl` declares four flat-white materials with no `map_Kd`, so a
-straight import renders the whole corridor white. The material *names* say what
-each surface should be, so [`tools/corridor-to-glb.py`](tools/corridor-to-glb.py)
-rebuilds them as PBR:
+Arguments are `<input> <output.glb> [target_tris] [tex_size]`. `0` keeps all
+geometry. The script takes OBJ, FBX or glTF.
 
-| Material | Faces | Becomes |
-| --- | --- | --- |
-| `default` | 242,550 | dark hull panelling |
-| `Mat_1` | 30,765 | lighter metal trim |
-| `Light_White` | 112 | emissive white strips |
-| `Light_Blue` | 56 | emissive strips, tinted to the Awaqi violet `#7C5CFF` |
-| `Yellow_Stripes.tex` | 14 | the bundled PNG, wired up as a real texture |
-
-Pass a triangle budget as a third argument to decimate; omit it to keep all
-geometry.
+**Texture gotcha:** the source `.mtl` declares `map_Kd Image_0.jpg` but ships
+the file inside a `texture/` subfolder, so the reference does not resolve until
+the image sits beside the `.mtl`. The textures also arrive in a *solid* RAR,
+which `bsdtar` cannot read — `brew install unar` handles it.
 
 ### Camera framing
 
-It is a corridor, so `<model-viewer>`'s default orbit — which frames the whole
-bounding box from outside — shows only a dark shell. `parts/model.php` places
-the camera *inside*, at mid-height, looking down its length:
+The bison is a single object centred on the origin, so `<model-viewer>`'s own
+auto-framing is correct and no manual `camera-target` is needed. The opening
+orbit is a three-quarter view chosen to match the poster, so the swap from
+still to live model is seamless:
 
 ```
-camera-target="0m 404.2m 3736.4m"   ← glTF-space centre
-camera-orbit="0deg 90deg 3600m"     ← just inside the far end, looking down Z
+camera-orbit="-32deg 76deg auto"
 ```
 
-Those numbers come from the model's bounds: centre `(0, 404, 3736)`, length
-`7667` along Z. **Regenerating the model at a different scale or orientation
-means recomputing them**, or the view opens inside a wall.
+Auto-rotate is on with a short delay, and `shadow-intensity` grounds the animal.
 
-`exposure="0.7"` keeps the dark hull dark so the emissive strips carry the
-image. Auto-rotate is deliberately off — orbiting from inside swings the camera
-through the walls.
+> A model that is *not* a centred single object usually needs an explicit
+> `camera-target` and `camera-orbit` computed from its bounds — an interior or a
+> corridor will otherwise open outside its own geometry, framing a closed shell.
 
 ### Swapping in a different model
 
-1. Drop the new GLB in `assets/models/`
-2. Update `AWAQI_MODEL_PATH` in `functions.php`
-3. Recompute the camera values above for the new bounds
-4. Replace the poster in `assets/images/`
+1. Convert the source with `tools/model-to-glb.py`
+2. Drop the GLB in `assets/models/`
+3. Update `AWAQI_MODEL_PATH` in `functions.php`
+4. Check the framing, and set `camera-orbit` / `camera-target` if it needs them
+5. Replace the poster in `assets/images/`
 
 To hide the section entirely, delete the GLB — the section and its 1 MB viewer
 script only load when that file is present.
