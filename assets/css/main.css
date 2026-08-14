@@ -35,8 +35,6 @@
                       rgba(5, 6, 10, 0.88) 22%,
                       rgba(5, 6, 10, 0.62) 42%,
                       rgba(5, 6, 10, 0) 66%);
-  --mask-corner:   radial-gradient(120% 120% at 100% 100%,
-                      var(--color-ink) 0%, var(--color-ink) 42%, rgba(5, 6, 10, 0) 78%);
   --color-error:   #FF9B8A;
 
   /* Typography */
@@ -112,6 +110,10 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 html,
@@ -343,12 +345,20 @@ body.is-scene-scroll {
   position: fixed;
   inset: 0;
   z-index: 0;
+  /* Clips the oversized iframe below. */
+  overflow: hidden;
 }
 
+/* The embed is cross-origin, so its bottom-right badge cannot be styled. The
+   iframe is instead sized past the viewport and anchored top-left, pushing that
+   corner outside the clip. Nothing is overlaid, so the scene stays clean. */
 .scene iframe {
   display: block;
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% + 15rem);
+  height: calc(100% + 6.5rem);
   border: 0;
   opacity: 0;
   transition: opacity var(--duration-lg) var(--ease);
@@ -367,41 +377,29 @@ body.is-scene-scroll {
   background: var(--veil-top), var(--veil-bottom);
 }
 
-/* Covers the third-party badge in the bottom-right of the embed. The embed is
-   cross-origin, so it cannot be styled directly — this masks it instead. */
-.scene-mask {
-  position: fixed;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-  width: 12rem;
-  height: 4rem;
-  pointer-events: none;
-  background: var(--mask-corner);
-}
-
 @media (max-width: 47.99rem) {
   /* The scene is rendered into a larger viewport and scaled down, which pushes
      the subject further away and clears the top of the frame for the wordmark. */
-  /* Sized to 150% and scaled to 0.76 so the frame still covers after the
-     downward nudge: 50% ± (75% × 0.76) = -7%..107%, minus a 5.7% shift. */
+  /* Pushes the subject further back so the wordmark clears it.
+     Centring is done with a transform, not percentage margins: margin
+     percentages resolve against the container's WIDTH even vertically, which
+     on a tall phone leaves a gap at the top of the frame. Transform
+     percentages use the element's own box, so the geometry holds.
+     Visual height = 150% x 0.76 = 114%, centred to -7%..107%, then nudged
+     down 5.7% -> -1.3%..112.7%. Covers, and the badge clips out bottom-right. */
   .scene iframe {
+    top: 50%;
+    left: 50%;
     width: 150%;
     height: 150%;
-    margin-left: -25%;
-    margin-top: -25%;
-    transform: scale(0.76) translateY(5%);
+    margin: 0;
+    transform: translate(-50%, -50%) scale(0.76) translateY(5%);
     transform-origin: center center;
   }
 
   /* A deeper, longer scrim so the headline stays readable on small screens. */
   .scene-veil {
     background: var(--veil-top-sm), var(--veil-bottom-sm);
-  }
-
-  .scene-mask {
-    width: 9rem;
-    height: 3.25rem;
   }
 }
 
@@ -563,6 +561,21 @@ body.is-scene-scroll {
   max-width: 34rem;
   margin: 0 auto;
   text-align: center;
+}
+
+/* The hidden state is applied by JS only, so the section stays visible when
+   scripting is unavailable. */
+.js-reveal {
+  opacity: 0;
+  translate: 0 1.25rem;
+  transition:
+    opacity 0.7s var(--ease),
+    translate 0.7s var(--ease);
+}
+
+.js-reveal.is-visible {
+  opacity: 1;
+  translate: 0 0;
 }
 
 .waitlist__title {
@@ -799,6 +812,15 @@ body.is-scene-scroll {
 /* ── Reduced Motion ────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .js-reveal {
+    opacity: 1;
+    translate: none;
+  }
+
   *,
   *::before,
   *::after {

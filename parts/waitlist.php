@@ -14,7 +14,7 @@ $notice  = awaqi_waitlist_notice();
 ?>
 
 <section class="waitlist" id="waitlist">
-	<div class="waitlist__in">
+	<div class="waitlist__in" data-reveal>
 		<?php if ( $heading ) : ?>
 			<h2 class="waitlist__title t-section"><?php echo esc_html( $heading ); ?></h2>
 		<?php endif; ?>
