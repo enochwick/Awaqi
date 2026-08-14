@@ -38,6 +38,57 @@
     });
   }
 
+  /**
+   * After a waitlist signup the page reloads with ?joined=. The visitor starts
+   * at the top so the scene is on screen, then the page glides down to the
+   * confirmation — rather than the browser jumping straight to an opaque panel
+   * and looking like it loaded black.
+   */
+  function handleSignupReturn() {
+    if (window.location.search.indexOf('joined=') === -1) {
+      return;
+    }
+
+    var section = document.getElementById('waitlist');
+    if (!section) {
+      return;
+    }
+
+    var root = document.documentElement;
+
+    // Start at the top without animating the way up there.
+    var previous = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+    window.scrollTo(0, 0);
+    root.style.scrollBehavior = previous;
+
+    function glide() {
+      section.scrollIntoView({
+        behavior: reduced.matches ? 'auto' : 'smooth',
+        block: 'start'
+      });
+    }
+
+    // A beat for the scene to fade in before moving.
+    if (reduced.matches) {
+      glide();
+    } else {
+      window.setTimeout(glide, 1100);
+    }
+
+    // Drop the flags so a refresh does not replay the message or the glide.
+    // Any other query parameters on the URL are preserved.
+    if (window.history && window.history.replaceState && 'URLSearchParams' in window) {
+      var params = new URLSearchParams(window.location.search);
+      params.delete('joined');
+      params.delete('err');
+      var query = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (query ? '?' + query : ''));
+    }
+  }
+
+  handleSignupReturn();
+
   var targets = document.querySelectorAll('[data-reveal]');
 
   if (!targets.length || reduced.matches || !('IntersectionObserver' in window)) {
