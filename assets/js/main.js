@@ -41,11 +41,20 @@
   /**
    * After a waitlist signup the page reloads with ?joined=.
    *
-   * On success the visitor stays on the hero — the confirmation is rendered
-   * over the scene, so the robot is what they see rather than the opaque form
-   * panel. On failure the page glides down to the field, because that is where
-   * the problem has to be fixed.
+   * The sequence is: glide down to the confirmation beside the form, hold long
+   * enough to read it, raise the loader curtain, jump home behind it, then
+   * lower the curtain onto the hero. The curtain is what makes the return trip
+   * feel deliberate rather than like a second page load.
+   *
+   * Failures stop at the form — that is where the address gets corrected.
    */
+  var STEP = {
+    toForm:  900,   // let the scene settle before moving
+    read:    2600,  // time on the confirmation
+    curtain: 700,   // curtain fade-in before jumping
+    home:    500    // beat at the top before revealing
+  };
+
   function handleSignupReturn() {
     var search = window.location.search;
 
@@ -53,44 +62,64 @@
       return;
     }
 
-    var failed = search.indexOf('joined=0') !== -1;
-    var root = document.documentElement;
+    var failed  = search.indexOf('joined=0') !== -1;
+    var section = document.getElementById('waitlist');
+    var loader  = document.querySelector('[data-loader]');
+    var root    = document.documentElement;
+    var soft    = !reduced.matches;
+
+    clearFlags();
+
+    if (!section) {
+      return;
+    }
 
     // Land at the top without animating the way up there.
-    var previous = root.style.scrollBehavior;
-    root.style.scrollBehavior = 'auto';
-    window.scrollTo(0, 0);
-    root.style.scrollBehavior = previous;
+    scrollTop('auto');
 
-    if (failed) {
-      var section = document.getElementById('waitlist');
+    window.setTimeout(function () {
+      section.scrollIntoView({ behavior: soft ? 'smooth' : 'auto', block: 'start' });
+    }, soft ? STEP.toForm : 0);
 
-      if (section) {
-        var glide = function () {
-          section.scrollIntoView({
-            behavior: reduced.matches ? 'auto' : 'smooth',
-            block: 'start'
-          });
-        };
-
-        // A beat for the scene to settle before moving.
-        if (reduced.matches) {
-          glide();
-        } else {
-          window.setTimeout(glide, 900);
-        }
-      }
+    if (failed || !loader) {
+      return;
     }
 
-    // Drop the flags so a refresh does not replay the message or the glide.
-    // Any other query parameters on the URL are preserved.
-    if (window.history && window.history.replaceState && 'URLSearchParams' in window) {
-      var params = new URLSearchParams(window.location.search);
-      params.delete('joined');
-      params.delete('err');
-      var query = params.toString();
-      window.history.replaceState({}, '', window.location.pathname + (query ? '?' + query : ''));
+    window.setTimeout(function () {
+      loader.classList.add('is-transition');
+
+      window.setTimeout(function () {
+        scrollTop('auto');
+
+        window.setTimeout(function () {
+          loader.classList.remove('is-transition');
+        }, STEP.home);
+      }, soft ? STEP.curtain : 0);
+    }, (soft ? STEP.toForm : 0) + STEP.read);
+
+    function scrollTop(behavior) {
+      var previous = root.style.scrollBehavior;
+      root.style.scrollBehavior = behavior;
+      window.scrollTo(0, 0);
+      root.style.scrollBehavior = previous;
     }
+  }
+
+  /**
+   * Drops the status flags so a refresh does not replay the sequence. Other
+   * query parameters are preserved.
+   */
+  function clearFlags() {
+    if (!window.history || !window.history.replaceState || !('URLSearchParams' in window)) {
+      return;
+    }
+
+    var params = new URLSearchParams(window.location.search);
+    params.delete('joined');
+    params.delete('err');
+
+    var query = params.toString();
+    window.history.replaceState({}, '', window.location.pathname + (query ? '?' + query : ''));
   }
 
   handleSignupReturn();
