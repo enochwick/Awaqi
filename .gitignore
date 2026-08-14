@@ -1,10 +1,17 @@
 # -----------------------------------------------------------------------------
+# This repo IS the theme — its files live at the root so that git-based
+# installers (Deployer for Git, WP Pusher, cPanel) can treat the repository as
+# a WordPress theme directly.
+#
+# Note: do NOT add rules like /assets/ or /index.php here. Those are the
+# theme's own files now, and ignoring them silently ships a broken theme.
+# -----------------------------------------------------------------------------
+
 # Raw 3D source — NEVER commit these.
 # The interior OBJ alone is 1.2 GB. GitHub rejects any file over 100 MB, and
-# even under LFS a file that size makes the repo unusable. Keep the raw sources
-# in cloud storage; commit only the optimized GLB the site actually loads.
-# -----------------------------------------------------------------------------
-/assets/
+# even under LFS a file that size makes the repo unusable. Keep raw sources in
+# cloud storage; commit only the optimized GLB in assets/models/.
+/raw-3d/
 *.obj
 *.mtl
 *.c4d
@@ -14,20 +21,6 @@
 *.max
 *.rar
 *.zip
-
-# WordPress — this repo holds the theme only.
-/wp-config.php
-/wp-content/uploads/
-/wp-content/upgrade/
-/wp-content/cache/
-/wp-content/plugins/
-/wp-admin/
-/wp-includes/
-/wp-*.php
-/index.php
-/xmlrpc.php
-/license.txt
-/readme.html
 
 # Deployer
 /vendor/

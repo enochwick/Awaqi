@@ -7,6 +7,9 @@ browser. This decimates to a target triangle budget and exports a single GLB.
 Run:
     /Applications/Blender.app/Contents/MacOS/Blender --background \
         --python tools/obj-to-glb.py -- <input.obj> <output.glb> [target_tris]
+
+Typical:
+    ... -- raw-3d/scene.obj assets/models/interior.glb 250000
 """
 
 import sys

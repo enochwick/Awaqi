@@ -1,17 +1,15 @@
 ---
 # cPanel Git Version Control deployment.
 #
-# Without this file, cPanel clones the repo into ~/repositories/Awaqi and stops
-# there — the pull "succeeds" but nothing reaches the live site. These tasks
-# copy the theme out of the checkout and into wp-content/themes/awaqi.
+# The repo root IS the theme, so these tasks copy the root into
+# wp-content/themes/awaqi, excluding the development files that should never
+# reach a web server.
+#
+# Not needed if you deploy with the "Deployer for Git" WordPress plugin —
+# that installs straight from GitHub. This is the fallback / alternative path.
 #
 # CHECK WP_ROOT BELOW before deploying. It must point at the folder containing
-# wp-config.php. That is public_html for a primary domain, but an addon domain
-# or subdomain will differ (e.g. $HOME/awaqi.ai, or $HOME/public_html/sub).
-# Confirm it under cPanel → Domains → Document Root.
-#
-# After editing: commit, push, then hit Deploy HEAD Commit in
-# cPanel → Git Version Control.
+# wp-config.php. Confirm it under cPanel → Domains → Document Root.
 
 deployment:
   tasks:
@@ -25,15 +23,13 @@ deployment:
 
     # If something else already occupies the folder, back it up once rather
     # than overwriting it. Skipped when the folder is already our theme.
-    # Note: tests for a *readable style.css that is not ours*, so a missing
-    # grep or unreadable file can never silently trigger a rename loop.
     - if [ -f "$THEME/style.css" ] && ! grep -q "Theme Name: Awaqi" "$THEME/style.css"; then mv "$THEME" "$THEME-backup-$(date +%Y%m%d%H%M%S)"; echo "Backed up the previous theme folder"; fi
 
     - mkdir -p "$THEME"
 
     # rsync mirrors (removing files deleted from the repo) where available;
     # cp is the fallback for hosts that do not ship rsync.
-    - if command -v rsync >/dev/null 2>&1; then rsync -a --delete wp-content/themes/awaqi/ "$THEME/"; else cp -R wp-content/themes/awaqi/. "$THEME/"; fi
+    - if command -v rsync >/dev/null 2>&1; then rsync -a --delete --exclude='.git' --exclude='.github' --exclude='.gitignore' --exclude='.cpanel.yml' --exclude='deploy.php' --exclude='composer.json' --exclude='composer.lock' --exclude='README.md' --exclude='SKILL.md' --exclude='docs' --exclude='tools' --exclude='raw-3d' --exclude='vendor' --exclude='node_modules' ./ "$THEME/"; else cp -R . "$THEME/" && rm -rf "$THEME/.git" "$THEME/docs" "$THEME/tools" "$THEME/raw-3d" "$THEME/deploy.php" "$THEME/README.md" "$THEME/SKILL.md" "$THEME/composer.json"; fi
 
     - echo "Deployed to $THEME"
     - ls -la "$THEME"

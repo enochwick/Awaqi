@@ -7,21 +7,36 @@ This repo holds **the theme only** — never WordPress core, uploads, plugins, o
 the database. That keeps deploys fast, safe to roll back, and free of anything
 WordPress owns at runtime.
 
+**The repository root is the theme.** Git-based installers (Deployer for Git,
+WP Pusher, cPanel) treat a repo as a theme only when `style.css` sits at the
+top level, so the theme files live at the root and the tooling lives beside
+them.
+
 ```
-deploy.php                          Deployer recipe (hosts, tasks, flow)
-composer.json                       Pulls in Deployer
-tools/obj-to-glb.py                 Blender script: raw OBJ → web-ready GLB
-docs/static-preview.html            The original static HTML version
-wp-content/themes/awaqi/
-  style.css                         Theme header
-  functions.php                     Setup, assets, Customizer options
-  theme.json                        Block editor palette + layout
-  header.php footer.php             Chrome
-  front-page.php                    The 3D scene
-  index.php singular.php 404.php    Content templates
-  parts/hero-scene.php              Scene + overlay markup
-  assets/css/main.css               All styles
-  assets/js/scene.js                Loader → scene cross-fade
+style.css                  Theme header (no styles — see assets/css/main.css)
+functions.php              Setup, assets, conditionals, Customizer fallback
+header.php  footer.php     Chrome
+front-page.php             The 3D scene
+home.php  archive.php      Blog index and archives
+page.php  single.php       Content templates
+index.php  404.php         Fallback and not-found
+inc/acf-fields.php         ACF field group + awaqi_field() resolver
+parts/                     hero-scene.php, model.php, post-list.php
+assets/css/main.css        ALL styles — one file, token-based
+assets/js/main.js          Global JS
+assets/js/scene.js         Front-page loader → scene cross-fade
+assets/js/vendor/          model-viewer, self-hosted
+assets/images/             Static images
+assets/models/             Optimized GLB
+
+── tooling, excluded from deploys ──
+deploy.php                 Deployer recipe (alternative SSH path)
+.cpanel.yml                cPanel Git deployment (alternative path)
+composer.json              Pulls in Deployer
+tools/obj-to-glb.py        Blender script: raw OBJ → web-ready GLB
+docs/static-preview.html   The original static HTML version
+raw-3d/                    Raw 3D source (git-ignored)
+SKILL.md                   Theme development conventions
 ```
 
 ## Local setup
@@ -31,9 +46,11 @@ the theme lands in the right place:
 
 ```bash
 cd /path/to/wordpress/wp-content/themes
-git clone git@github.com:USERNAME/awaqi.git awaqi-repo
-ln -s awaqi-repo/wp-content/themes/awaqi awaqi
+git clone https://github.com/enochwick/Awaqi.git awaqi
 ```
+
+Because the repo root is the theme, the clone *is* the theme directory — no
+symlink needed.
 
 Then activate **Awaqi** under Appearance → Themes.
 
@@ -60,9 +77,36 @@ Nav items come from **Appearance → Menus**, assigned to the *Primary* location
 The CTA button is appended automatically. With no menu assigned, only the CTA
 shows, so a fresh install still looks intentional.
 
-## Deploying — cPanel Git Version Control (current setup)
+## Deploying — Deployer for Git plugin (current setup)
 
-This is the active path. [`.cpanel.yml`](.cpanel.yml) drives it.
+The [Deployer for Git](https://wordpress.org/plugins/deployer-for-git/) plugin
+installs the theme straight from GitHub. No SSH, no git on the server, and the
+free tier covers public repositories.
+
+**Deployer for Git → Install Theme:**
+
+| Field | Value |
+| --- | --- |
+| Provider Type | GitHub |
+| Repository URL | `https://github.com/enochwick/Awaqi` |
+| Branch | `main` |
+| Is Private Repository | unchecked (repo is public) |
+
+Then **Appearance → Themes → activate Awaqi**. Installing does not activate.
+
+This plugin has no "subdirectory" setting — it treats the whole repository as
+the theme. That is why `style.css` lives at the repo root. Moving the theme
+back into a `wp-content/themes/awaqi/` subfolder would break this deploy path.
+
+The plugin copies every tracked file, so `deploy.php`, `README.md`, `docs/` and
+`tools/` land in the theme folder too. They are inert — WordPress only reads
+the template files — but the `.cpanel.yml` path below excludes them if you care.
+
+To update: push to `main`, then re-run Install Theme. It overwrites in place.
+
+## Deploying — cPanel Git Version Control (alternative)
+
+[`.cpanel.yml`](.cpanel.yml) drives it.
 
 **Why a pull can "succeed" and change nothing:** cPanel clones the repo into
 `~/repositories/Awaqi` and stops there. Without `.cpanel.yml` it never copies
@@ -137,7 +181,7 @@ vendor/bin/dep deploy production
 ```
 
 What happens: Deployer clones the branch, extracts only
-`wp-content/themes/awaqi` into a timestamped release, lints every PHP file,
+the repo into a timestamped release, lints every PHP file,
 flips the `current` symlink, points `wp-content/themes/awaqi` at it, and flushes
 WP-CLI caches if WP-CLI is installed.
 
@@ -167,7 +211,7 @@ rollback a symlink flip rather than a redeploy.
 
 ## The 3D model
 
-`assets/` holds raw 3D source and is **git-ignored on purpose**. The interior
+`raw-3d/` holds raw 3D source and is **git-ignored on purpose**. The interior
 OBJ is 1.2 GB / 7M faces — GitHub rejects files over 100 MB, and a file that
 size makes a repo unusable even under LFS. Keep raw sources in cloud storage and
 commit only the optimized GLB the site actually loads.
@@ -177,8 +221,8 @@ To produce that GLB:
 ```bash
 /Applications/Blender.app/Contents/MacOS/Blender --background \
   --python tools/obj-to-glb.py -- \
-  assets/Free_interior_scene_01_update_Corona_8.obj \
-  wp-content/themes/awaqi/assets/models/interior.glb \
+  raw-3d/Free_interior_scene_01_update_Corona_8.obj \
+  assets/models/interior.glb \
   250000
 ```
 
@@ -211,7 +255,7 @@ sees a closed grey shell.
 
 **The realistic paths forward**, best first:
 
-- Use `assets/img/interior-poster.jpg` (the 4K render) as a still. It is
+- Use `assets/images/interior-poster.jpg` (the 4K render) as a still. It is
   genuinely beautiful and costs 259 KB. Already bundled.
 - Re-export from the source `.c4d` with materials, and decimate *per object*
   with a floor on small items rather than joining first.
@@ -219,7 +263,7 @@ sees a closed grey shell.
   which sidesteps the material and camera problems entirely.
 
 To hide the model section, delete
-`wp-content/themes/awaqi/assets/models/interior.glb` — the section and its 1 MB
+`assets/models/interior.glb` — the section and its 1 MB
 viewer script only load when that file is present.
 
 ### Where the model shows up
@@ -232,7 +276,7 @@ fresh checkout is never broken by the missing (git-ignored) binary.
 The viewer library is vendored at `assets/js/vendor/model-viewer.min.js` rather
 than loaded from a CDN, and is enqueued only on views that show a model.
 
-`assets/img/interior-poster.jpg` is a downsized 4K render used as the loading
+`assets/images/interior-poster.jpg` is a downsized 4K render used as the loading
 poster, and is a perfectly good standalone hero image if the GLB never lands.
 
 ## Conventions

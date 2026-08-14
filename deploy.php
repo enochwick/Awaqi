@@ -30,9 +30,8 @@ set( 'keep_releases', 5 );
 set( 'git_tty', false );
 set( 'ssh_multiplexing', true );
 
-// Only the theme directory is copied out of the repo into the release.
+// The repo root is the theme, so the whole archive becomes the release.
 set( 'update_code_strategy', 'archive' );
-set( 'sub_directory', 'wp-content/themes/{{theme_slug}}' );
 
 // No build step: the theme ships plain CSS and JS on purpose.
 set( 'shared_files', [] );
