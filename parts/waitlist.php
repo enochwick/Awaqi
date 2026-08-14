@@ -10,7 +10,11 @@ defined( 'ABSPATH' ) || exit;
 $heading = awaqi_field( 'awaqi_waitlist_heading' );
 $text    = awaqi_field( 'awaqi_waitlist_text' );
 $button  = awaqi_field( 'awaqi_waitlist_button' );
+// Success is confirmed up in the hero; only errors belong beside the field.
 $notice  = awaqi_waitlist_notice();
+if ( $notice && 'ok' === $notice['type'] ) {
+	$notice = null;
+}
 ?>
 
 <section class="waitlist" id="waitlist">

@@ -39,41 +39,47 @@
   }
 
   /**
-   * After a waitlist signup the page reloads with ?joined=. The visitor starts
-   * at the top so the scene is on screen, then the page glides down to the
-   * confirmation — rather than the browser jumping straight to an opaque panel
-   * and looking like it loaded black.
+   * After a waitlist signup the page reloads with ?joined=.
+   *
+   * On success the visitor stays on the hero — the confirmation is rendered
+   * over the scene, so the robot is what they see rather than the opaque form
+   * panel. On failure the page glides down to the field, because that is where
+   * the problem has to be fixed.
    */
   function handleSignupReturn() {
-    if (window.location.search.indexOf('joined=') === -1) {
+    var search = window.location.search;
+
+    if (search.indexOf('joined=') === -1) {
       return;
     }
 
-    var section = document.getElementById('waitlist');
-    if (!section) {
-      return;
-    }
-
+    var failed = search.indexOf('joined=0') !== -1;
     var root = document.documentElement;
 
-    // Start at the top without animating the way up there.
+    // Land at the top without animating the way up there.
     var previous = root.style.scrollBehavior;
     root.style.scrollBehavior = 'auto';
     window.scrollTo(0, 0);
     root.style.scrollBehavior = previous;
 
-    function glide() {
-      section.scrollIntoView({
-        behavior: reduced.matches ? 'auto' : 'smooth',
-        block: 'start'
-      });
-    }
+    if (failed) {
+      var section = document.getElementById('waitlist');
 
-    // A beat for the scene to fade in before moving.
-    if (reduced.matches) {
-      glide();
-    } else {
-      window.setTimeout(glide, 1100);
+      if (section) {
+        var glide = function () {
+          section.scrollIntoView({
+            behavior: reduced.matches ? 'auto' : 'smooth',
+            block: 'start'
+          });
+        };
+
+        // A beat for the scene to settle before moving.
+        if (reduced.matches) {
+          glide();
+        } else {
+          window.setTimeout(glide, 900);
+        }
+      }
     }
 
     // Drop the flags so a refresh does not replay the message or the glide.

@@ -459,6 +459,50 @@ body.is-scene-scroll {
   min-height: 100dvh;
 }
 
+/* ── Hero Toast ────────────────────────────────────────────── */
+
+/* Signup confirmation, shown over the scene so the visitor stays on the
+   hero instead of being left on the opaque form panel. */
+.hero-toast {
+  display: inline-flex;
+  /* Starts at the top so the tick stays with the first line when the message
+     wraps, which it does on a narrow phone. */
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-violet);
+  /* Not a full pill: the radius has to still read correctly over two lines. */
+  border-radius: var(--radius-lg);
+  text-align: left;
+  background: var(--surface-2);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  animation: toast-in 0.6s var(--ease) both;
+}
+
+.hero-toast svg {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.2em;
+  color: var(--color-violet);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    translate: 0 0.5rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
 /* ── Hero ──────────────────────────────────────────────────── */
 
 .hero-row {

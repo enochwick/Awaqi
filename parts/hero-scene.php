@@ -10,6 +10,12 @@ defined( 'ABSPATH' ) || exit;
 $scene_url = awaqi_field( 'awaqi_scene_url' );
 $heading   = awaqi_field( 'awaqi_hero_heading' );
 $text      = awaqi_field( 'awaqi_hero_text' );
+
+// Success is confirmed here, over the scene, so a signup never leaves the
+// visitor parked on the opaque form panel. Errors stay down at the field,
+// where they can actually be corrected.
+$notice = awaqi_waitlist_notice();
+$done   = ( $notice && 'ok' === $notice['type'] ) ? $notice : null;
 ?>
 
 <?php if ( $scene_url ) : ?>
@@ -32,6 +38,16 @@ $text      = awaqi_field( 'awaqi_hero_text' );
 
 	<div class="hero-row">
 		<div class="hero">
+			<?php if ( $done ) : ?>
+				<p class="hero-toast" role="status">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+						stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+						<path d="M20 6 9 17l-5-5" />
+					</svg>
+					<?php echo esc_html( $done['text'] ); ?>
+				</p>
+			<?php endif; ?>
+
 			<?php if ( $heading ) : ?>
 				<h1 class="hero__title t-hero">
 					<?php
