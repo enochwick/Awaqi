@@ -135,7 +135,7 @@ function awaqi_acf_fields() {
 				'name'          => 'awaqi_model_heading',
 				'type'          => 'text',
 				'instructions'  => __( 'Only shown when a GLB model is bundled with the theme.', 'awaqi' ),
-				'default_value' => 'Step inside the space.',
+				'default_value' => 'Step inside the corridor.',
 			),
 			array(
 				'key'           => 'field_awaqi_model_text',
@@ -143,7 +143,7 @@ function awaqi_acf_fields() {
 				'name'          => 'awaqi_model_text',
 				'type'          => 'textarea',
 				'rows'          => 3,
-				'default_value' => 'A real-time, fully navigable interior — drag to orbit, scroll to move closer.',
+				'default_value' => 'A real-time environment running in your browser — drag to look around, scroll to move through it.',
 			),
 			array(
 				'key'          => 'field_awaqi_model_poster',

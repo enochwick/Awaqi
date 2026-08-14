@@ -22,7 +22,7 @@ $text    = awaqi_field( 'awaqi_model_text' );
 // Falls back to the render bundled with the theme.
 $poster = awaqi_field( 'awaqi_model_poster' );
 if ( ! $poster ) {
-	$poster = get_template_directory_uri() . '/assets/images/interior-poster.jpg';
+	$poster = get_template_directory_uri() . '/assets/images/corridor-poster.jpg';
 }
 ?>
 
@@ -44,12 +44,24 @@ if ( ! $poster ) {
 			poster="<?php echo esc_url( $poster ); ?>"
 			camera-controls
 			touch-action="pan-y"
-			auto-rotate
-			auto-rotate-delay="1200"
-			rotation-per-second="12deg"
 			interaction-prompt="none"
-			shadow-intensity="0.6"
-			exposure="1.1"
+			<?php
+			/*
+			 * The model is a corridor, so the default orbit — which frames the
+			 * whole bounding box from outside — shows only a dark shell. These
+			 * values place the camera inside, at mid-height, looking down its
+			 * length. Derived from the model's glTF-space bounds:
+			 * centre (0, 404, 3736), length 7667 along Z.
+			 */
+			?>
+			camera-target="0m 404.2m 3736.4m"
+			camera-orbit="0deg 90deg 3600m"
+			min-camera-orbit="auto auto 400m"
+			max-camera-orbit="auto auto 12000m"
+			field-of-view="45deg"
+			<?php // Dark hull with emissive strips: keep exposure low so the lights carry the image. ?>
+			exposure="0.7"
+			shadow-intensity="0"
 			environment-image="neutral"
 			loading="lazy"
 			reveal="auto">

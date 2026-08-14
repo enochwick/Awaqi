@@ -33,7 +33,8 @@ assets/models/             Optimized GLB
 deploy.php                 Deployer recipe (alternative SSH path)
 .cpanel.yml                cPanel Git deployment (alternative path)
 composer.json              Pulls in Deployer
-tools/obj-to-glb.py        Blender script: raw OBJ → web-ready GLB
+tools/corridor-to-glb.py   Blender: corridor OBJ → GLB with rebuilt PBR
+tools/obj-to-glb.py        Blender: generic OBJ → decimated GLB
 docs/static-preview.html   The original static HTML version
 raw-3d/                    Raw 3D source (git-ignored)
 SKILL.md                   Theme development conventions
@@ -211,73 +212,72 @@ rollback a symlink flip rather than a redeploy.
 
 ## The 3D model
 
-`raw-3d/` holds raw 3D source and is **git-ignored on purpose**. The interior
-OBJ is 1.2 GB / 7M faces — GitHub rejects files over 100 MB, and a file that
-size makes a repo unusable even under LFS. Keep raw sources in cloud storage and
-commit only the optimized GLB the site actually loads.
-
-To produce that GLB:
-
-```bash
-/Applications/Blender.app/Contents/MacOS/Blender --background \
-  --python tools/obj-to-glb.py -- \
-  raw-3d/Free_interior_scene_01_update_Corona_8.obj \
-  assets/models/interior.glb \
-  250000
-```
-
-The last argument is the triangle budget. 150k–300k is a sane range for the web.
-
-The last argument is the triangle budget. 150k–300k is a sane range for the web.
-
-The conversion runs and produces a valid, well-compressed file:
+The front page shows a **Sci Fi Corridor** below the Spline scene, rendered by
+a self-hosted `<model-viewer>`.
 
 | | |
 | --- | --- |
-| Source | 1.2 GB OBJ, 2,407 objects, 14.1M triangles |
-| Output | 3.2 MB GLB, 241k triangles, Draco-compressed |
-| Preserved | positions, normals, UVs |
+| Source | 36 MB OBJ, 273,497 faces, 5 materials |
+| Output | `assets/models/corridor.glb` — 3.1 MB, Draco-compressed |
+| Geometry | kept in full; no decimation needed |
+| Poster | `assets/images/corridor-poster.jpg` (90 KB Blender render) |
 
-**But the result is not usable as a showcase yet, for two reasons:**
+`raw-3d/` holds raw 3D source and is **git-ignored on purpose** — keep raw
+sources in cloud storage and commit only the optimized GLB.
 
-1. **No materials.** The OBJ references a `.mtl` file that is not in the
-   download, so the GLB carries a single default material — the model renders
-   flat grey. The textures exist in the original download's `tex/` folder, but
-   reassigning 2,400+ materials by hand is not realistic.
-2. **Interior detail did not survive decimation.** Getting from 14.1M to 241k
-   triangles means keeping 1.7% of the geometry. Collapse-decimating the joined
-   mesh preserves large flat surfaces (walls, floor, ceiling) and destroys the
-   small objects that make the scene worth looking at. Test renders from inside
-   the model come back essentially featureless.
+### Rebuilding it
 
-On top of that, it is an *interior* — a default orbit camera sits outside and
-sees a closed grey shell.
+```bash
+/Applications/Blender.app/Contents/MacOS/Blender --background \
+  --python tools/corridor-to-glb.py -- \
+  "raw-3d/Sci Fi Corridor_Obj/Sci Fi Corridor.obj" \
+  assets/models/corridor.glb
+```
 
-**The realistic paths forward**, best first:
+The source `.mtl` declares four flat-white materials with no `map_Kd`, so a
+straight import renders the whole corridor white. The material *names* say what
+each surface should be, so [`tools/corridor-to-glb.py`](tools/corridor-to-glb.py)
+rebuilds them as PBR:
 
-- Use `assets/images/interior-poster.jpg` (the 4K render) as a still. It is
-  genuinely beautiful and costs 259 KB. Already bundled.
-- Re-export from the source `.c4d` with materials, and decimate *per object*
-  with a floor on small items rather than joining first.
-- Import the model into Spline and serve it the same way as the hero scene,
-  which sidesteps the material and camera problems entirely.
+| Material | Faces | Becomes |
+| --- | --- | --- |
+| `default` | 242,550 | dark hull panelling |
+| `Mat_1` | 30,765 | lighter metal trim |
+| `Light_White` | 112 | emissive white strips |
+| `Light_Blue` | 56 | emissive strips, tinted to the Awaqi violet `#7C5CFF` |
+| `Yellow_Stripes.tex` | 14 | the bundled PNG, wired up as a real texture |
 
-To hide the model section, delete
-`assets/models/interior.glb` — the section and its 1 MB
-viewer script only load when that file is present.
+Pass a triangle budget as a third argument to decimate; omit it to keep all
+geometry.
 
-### Where the model shows up
+### Camera framing
 
-`parts/model.php` renders a `<model-viewer>` section below the Spline scene on
-the front page — but only when `assets/models/interior.glb` actually exists.
-Without it, the front page stays a locked single screen exactly as before, so a
-fresh checkout is never broken by the missing (git-ignored) binary.
+It is a corridor, so `<model-viewer>`'s default orbit — which frames the whole
+bounding box from outside — shows only a dark shell. `parts/model.php` places
+the camera *inside*, at mid-height, looking down its length:
 
-The viewer library is vendored at `assets/js/vendor/model-viewer.min.js` rather
-than loaded from a CDN, and is enqueued only on views that show a model.
+```
+camera-target="0m 404.2m 3736.4m"   ← glTF-space centre
+camera-orbit="0deg 90deg 3600m"     ← just inside the far end, looking down Z
+```
 
-`assets/images/interior-poster.jpg` is a downsized 4K render used as the loading
-poster, and is a perfectly good standalone hero image if the GLB never lands.
+Those numbers come from the model's bounds: centre `(0, 404, 3736)`, length
+`7667` along Z. **Regenerating the model at a different scale or orientation
+means recomputing them**, or the view opens inside a wall.
+
+`exposure="0.7"` keeps the dark hull dark so the emissive strips carry the
+image. Auto-rotate is deliberately off — orbiting from inside swings the camera
+through the walls.
+
+### Swapping in a different model
+
+1. Drop the new GLB in `assets/models/`
+2. Update `AWAQI_MODEL_PATH` in `functions.php`
+3. Recompute the camera values above for the new bounds
+4. Replace the poster in `assets/images/`
+
+To hide the section entirely, delete the GLB — the section and its 1 MB viewer
+script only load when that file is present.
 
 ## Conventions
 

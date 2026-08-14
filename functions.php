@@ -17,7 +17,7 @@ define( 'AWAQI_DEFAULT_SCENE', 'https://my.spline.design/awaqiaiformobile-petbTi
 /**
  * Path to the bundled GLB, relative to the theme.
  */
-define( 'AWAQI_MODEL_PATH', '/assets/models/interior.glb' );
+define( 'AWAQI_MODEL_PATH', '/assets/models/corridor.glb' );
 
 require_once get_template_directory() . '/inc/acf-fields.php';
 
@@ -236,14 +236,14 @@ function awaqi_fields() {
 			'sanitize' => 'sanitize_text_field',
 		),
 		'awaqi_model_heading' => array(
-			'default'  => __( 'Step inside the space.', 'awaqi' ),
+			'default'  => __( 'Step inside the corridor.', 'awaqi' ),
 			'label'    => __( 'Model section heading', 'awaqi' ),
 			'type'     => 'text',
 			'sanitize' => 'sanitize_text_field',
 			'help'     => __( 'Only shown when a GLB model is bundled with the theme.', 'awaqi' ),
 		),
 		'awaqi_model_text' => array(
-			'default'  => __( 'A real-time, fully navigable interior — drag to orbit, scroll to move closer.', 'awaqi' ),
+			'default'  => __( 'A real-time environment running in your browser — drag to look around, scroll to move through it.', 'awaqi' ),
 			'label'    => __( 'Model section paragraph', 'awaqi' ),
 			'type'     => 'textarea',
 			'sanitize' => 'sanitize_textarea_field',
