@@ -33,7 +33,10 @@ print(f"[awaqi] target : {target_tris:,} triangles")
 # Start from an empty file rather than the default cube/camera/light.
 bpy.ops.wm.read_factory_settings(use_empty=True)
 
-print("[awaqi] importing (this is the slow part)...")
+# Parsing is fast even for a gigabyte-plus file — on the 1.19 GB interior this
+# took 7.6s. The expensive phases are the join and the decimate below, which
+# scale with polygon count, not file size.
+print("[awaqi] importing...")
 bpy.ops.wm.obj_import(filepath=src)
 
 meshes = [o for o in bpy.context.scene.objects if o.type == "MESH"]
