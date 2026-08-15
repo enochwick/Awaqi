@@ -95,6 +95,65 @@ function awaqi_asset_version( $path ) {
 }
 
 /* ---------------------------------------------------------------------------
+ * Favicon
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Falls back to a favicon bundled with the theme.
+ *
+ * WordPress's own Site Icon (Appearance → Customize → Site Identity) wins when
+ * one is set — it generates every size and the Apple touch icon, and the client
+ * can change it without a deploy. This only fills the gap when no Site Icon
+ * exists, so the icon can still travel with the theme in git.
+ *
+ * Drop any of these into assets/brand-assets/ and it is picked up
+ * automatically, in this order:
+ *
+ *   favicon.svg   scales to every size, smallest file — preferred
+ *   favicon.png   512x512 or 192x192
+ *   favicon.ico   only if you need very old browsers
+ *
+ * apple-touch-icon.png (180x180) is added when present.
+ */
+function awaqi_favicon() {
+	if ( has_site_icon() ) {
+		return;
+	}
+
+	$dir = get_template_directory() . '/assets/brand-assets/';
+	$uri = get_template_directory_uri() . '/assets/brand-assets/';
+
+	$types = array(
+		'favicon.svg' => 'image/svg+xml',
+		'favicon.png' => 'image/png',
+		'favicon.ico' => 'image/x-icon',
+	);
+
+	foreach ( $types as $file => $mime ) {
+		if ( ! file_exists( $dir . $file ) ) {
+			continue;
+		}
+
+		printf(
+			'<link rel="icon" href="%1$s?v=%2$s" type="%3$s">' . "\n",
+			esc_url( $uri . $file ),
+			esc_attr( awaqi_asset_version( $dir . $file ) ),
+			esc_attr( $mime )
+		);
+		break;
+	}
+
+	if ( file_exists( $dir . 'apple-touch-icon.png' ) ) {
+		printf(
+			'<link rel="apple-touch-icon" href="%1$s?v=%2$s">' . "\n",
+			esc_url( $uri . 'apple-touch-icon.png' ),
+			esc_attr( awaqi_asset_version( $dir . 'apple-touch-icon.png' ) )
+		);
+	}
+}
+add_action( 'wp_head', 'awaqi_favicon' );
+
+/* ---------------------------------------------------------------------------
  * Conditionals
  * ------------------------------------------------------------------------ */
 
