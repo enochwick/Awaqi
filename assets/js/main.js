@@ -41,18 +41,17 @@
   /**
    * After a waitlist signup the page reloads with ?joined=.
    *
-   * Nothing scrolls. The URL fragment has already painted the page at the form,
-   * so the visitor never appears to leave the spot they submitted from. The
-   * sequence is: read the confirmation, raise the loader curtain, jump home
-   * behind it, lower the curtain onto the hero with the form below the fold.
+   * Nothing moves on arrival: the URL fragment has already painted the page at
+   * the form, so the visitor never appears to leave the spot they submitted
+   * from and the confirmation is simply there. After a beat the page scrolls
+   * back up to the hero, leaving the form below the fold.
    *
-   * Failures stop at the form — that is where the address gets corrected.
+   * No curtain is used. The loading spinner belongs to a genuine first visit,
+   * and is not even rendered on this request.
+   *
+   * Failures stay at the form — that is where the address gets corrected.
    */
-  var STEP = {
-    read:    2200,  // time on the confirmation before the curtain
-    curtain: 700,   // curtain fade-in before jumping home
-    home:    500    // beat at the top before revealing the hero
-  };
+  var READ_MS = 2200;
 
   function handleSignupReturn() {
     var search = window.location.search;
@@ -62,9 +61,6 @@
     }
 
     var failed = search.indexOf('joined=0') !== -1;
-    var loader = document.querySelector('[data-loader]');
-    var root   = document.documentElement;
-    var soft   = !reduced.matches;
 
     clearFlags();
 
@@ -74,30 +70,13 @@
       el.removeAttribute('data-reveal');
     });
 
-    // A failed signup stays put: the address has to be corrected at the field.
-    if (failed || !loader) {
+    if (failed) {
       return;
     }
 
     window.setTimeout(function () {
-      loader.classList.add('is-transition');
-
-      window.setTimeout(function () {
-        scrollTop();
-
-        window.setTimeout(function () {
-          loader.classList.remove('is-transition');
-        }, STEP.home);
-      }, soft ? STEP.curtain : 0);
-    }, STEP.read);
-
-    // Jumps home behind the raised curtain, never as a visible scroll.
-    function scrollTop() {
-      var previous = root.style.scrollBehavior;
-      root.style.scrollBehavior = 'auto';
-      window.scrollTo(0, 0);
-      root.style.scrollBehavior = previous;
-    }
+      window.scrollTo({ top: 0, behavior: reduced.matches ? 'auto' : 'smooth' });
+    }, READ_MS);
   }
 
   /**

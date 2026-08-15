@@ -11,9 +11,8 @@ $scene_url = awaqi_field( 'awaqi_scene_url' );
 $heading   = awaqi_field( 'awaqi_hero_heading' );
 $text      = awaqi_field( 'awaqi_hero_text' );
 
-// On a signup return the curtain is rendered but starts hidden: main.js
-// reuses it as the transition back to the hero once the confirmation has
-// been read.
+// The loader belongs to a genuine first visit. A signup return is a second
+// page load, and replaying the curtain there makes the site feel restarted.
 $returning = awaqi_is_waitlist_return();
 ?>
 
@@ -64,8 +63,8 @@ $returning = awaqi_is_waitlist_return();
 	</div>
 </div>
 
-<?php if ( $scene_url ) : ?>
-	<div class="loader<?php echo $returning ? ' is-hidden' : ''; ?>" data-loader>
+<?php if ( $scene_url && ! $returning ) : ?>
+	<div class="loader" data-loader>
 		<?php
 		/*
 		 * Ported from a React + motion component. The three paths share an

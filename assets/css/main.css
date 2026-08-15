@@ -417,14 +417,6 @@ body.is-scene-scroll {
   visibility: hidden;
 }
 
-/* Re-opens the curtain for the post-signup transition. Declared after
-   .is-hidden so it wins: scene.js may still be adding .is-hidden on its own
-   schedule, and must not close the curtain mid-transition. */
-.loader.is-transition {
-  opacity: 1;
-  visibility: visible;
-}
-
 .loader__mark {
   font-size: var(--text-xs);
   letter-spacing: 0.34em;
